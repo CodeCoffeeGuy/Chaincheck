@@ -119,8 +119,27 @@ export const CONTRACT_ABI = [
         name: "verifier",
         type: "address",
       },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256",
+      },
     ],
     name: "Verified",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "paused",
+        type: "bool",
+      },
+    ],
+    name: "Paused",
     type: "event",
   },
   {
@@ -189,6 +208,21 @@ export const CONTRACT_ABI = [
         internalType: "uint256",
         name: "registeredAt",
         type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "ipfsHash",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
       },
     ],
     stateMutability: "view",
@@ -282,6 +316,21 @@ export const CONTRACT_ABI = [
         name: "serialHashes",
         type: "bytes32[]",
       },
+      {
+        internalType: "string",
+        name: "ipfsHash",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
+      },
     ],
     name: "registerProduct",
     outputs: [],
@@ -328,6 +377,38 @@ export const CONTRACT_ABI = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "batchVerificationCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "paused",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -422,6 +503,230 @@ export const CONTRACT_ABI = [
         internalType: "uint256[]",
         name: "registeredAtArray",
         type: "uint256[]",
+      },
+      {
+        internalType: "string[]",
+        name: "ipfsHashes",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "descriptions",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "imageUrls",
+        type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "batchId",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "ipfsHash",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "description",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
+      },
+    ],
+    name: "updateProductMetadata",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32[]",
+        name: "serialHashes",
+        type: "bytes32[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "batchIds",
+        type: "uint256[]",
+      },
+    ],
+    name: "batchVerify",
+    outputs: [
+      {
+        internalType: "bool[]",
+        name: "results",
+        type: "bool[]",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getManufacturers",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "pause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "unpause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "serialHash",
+        type: "bytes32",
+      },
+    ],
+    name: "getVerificationHistory",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "serialHash",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint256",
+            name: "batchId",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "verifier",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "isAuthentic",
+            type: "bool",
+          },
+        ],
+        internalType: "struct ChainCheck.VerificationRecord[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "serialHash",
+        type: "bytes32",
+      },
+    ],
+    name: "getVerificationCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32[]",
+        name: "serialHashes",
+        type: "bytes32[]",
+      },
+    ],
+    name: "getVerificationHistoryBatch",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "serialHash",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint256",
+            name: "batchId",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "verifier",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "isAuthentic",
+            type: "bool",
+          },
+        ],
+        internalType: "struct ChainCheck.VerificationRecord[][]",
+        name: "",
+        type: "tuple[][]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "batchVerificationCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
