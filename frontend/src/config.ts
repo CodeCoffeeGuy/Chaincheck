@@ -357,5 +357,75 @@ export const CONTRACT_ABI = [
     stateMutability: "nonpayable",
     type: "function",
   },
+  {
+    inputs: [],
+    name: "getStatistics",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "totalProductsCount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "totalVerificationsCount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "totalManufacturers",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
+    ],
+    name: "transferOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256[]",
+        name: "batchIds",
+        type: "uint256[]",
+      },
+    ],
+    name: "getProductsBatch",
+    outputs: [
+      {
+        internalType: "string[]",
+        name: "names",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "brands",
+        type: "string[]",
+      },
+      {
+        internalType: "bool[]",
+        name: "existsArray",
+        type: "bool[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "registeredAtArray",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
 ] as const;
 

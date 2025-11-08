@@ -423,6 +423,51 @@ body {
   opacity: 0.8;
 }
 
+/* Navigation Tabs */
+.nav-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #3d3d3d;
+  padding-bottom: 0;
+}
+
+.nav-tab {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #999;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: -2px;
+}
+
+.nav-tab:hover {
+  color: #ff8c42;
+}
+
+.nav-tab.active {
+  color: #ff8c42;
+  border-bottom-color: #ff8c42;
+}
+
+/* Responsive tabs */
+@media (max-width: 768px) {
+  .nav-tabs {
+    gap: 5px;
+  }
+
+  .nav-tab {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+}
+
 /* Responsive Design - Mobile First Approach */
 
 /* Tablet and below */

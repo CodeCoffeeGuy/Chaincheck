@@ -7,6 +7,7 @@ import {
   getCurrentAccount,
   connectWallet,
 } from "./utils/blockchain";
+import ManufacturerDashboard from "./components/ManufacturerDashboard";
 import "./App.css";
 
 /**
@@ -31,6 +32,7 @@ function App() {
   const [walletConnected, setWalletConnected] = useState(false);
   const [scanner, setScanner] = useState<Html5QrcodeScanner | null>(null);
   const qrReaderRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState<"verify" | "dashboard">("verify");
 
   /**
    * Check wallet connection on component mount
@@ -163,10 +165,15 @@ function App() {
     }
 
     // Wait for DOM to update and element to be available
-    const timer = setTimeout(async () => {
+    // Use requestAnimationFrame for better timing
+    const initScanner = async () => {
+      // Wait for next frame to ensure DOM is fully rendered
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise(resolve => setTimeout(resolve, 200)); // Additional small delay
+      
       const element = document.getElementById("qr-reader");
       if (!element) {
-        console.error("QR reader element not found");
+        console.error("QR reader element not found after delay");
         setScanning(false);
         setResult({
           status: "error",
@@ -175,10 +182,13 @@ function App() {
         return;
       }
 
+      console.log("QR reader element found, initializing scanner...");
+
       // Clear any existing scanner first
       if (scanner) {
         try {
           scanner.clear();
+          setScanner(null);
         } catch (e) {
           console.log("Error clearing previous scanner:", e);
         }
@@ -189,23 +199,6 @@ function App() {
       let qrScanner: Html5QrcodeScanner;
       
       try {
-        // Check camera permissions first
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          // Stop the test stream immediately
-          stream.getTracks().forEach(track => track.stop());
-        } catch (permError: any) {
-          console.error("Camera permission error:", permError);
-          setScanning(false);
-          setResult({
-            status: "error",
-            message: permError.name === "NotAllowedError" || permError.name === "PermissionDeniedError"
-              ? "Camera permission denied. Please allow camera access in your browser settings and try again."
-              : "Camera access failed. Please check your camera permissions and try again.",
-          });
-          return;
-        }
-
         // Clear the element first to ensure clean state
         element.innerHTML = "";
 
@@ -214,6 +207,8 @@ function App() {
         const containerHeight = element.offsetHeight || 400;
         const maxSize = Math.min(containerWidth - 40, containerHeight - 40, isMobile ? 250 : 300);
         const qrBoxSize = Math.max(200, maxSize);
+
+        console.log("Initializing QR scanner with box size:", qrBoxSize, "Container:", containerWidth, "x", containerHeight);
 
         qrScanner = new Html5QrcodeScanner(
           "qr-reader",
@@ -227,20 +222,23 @@ function App() {
             showTorchButtonIfSupported: true,
             showZoomSliderIfSupported: true,
           },
-          false // verbose mode off for cleaner UI
+          true // verbose mode on for debugging
         );
 
         setScanner(qrScanner);
         setLoading(true); // Show loading while camera starts
 
+        console.log("QR scanner instance created, calling render()...");
+
         // Start scanning with proper error handling
+        // The render method should start the camera automatically
         qrScanner.render(
           async (decodedText) => {
             console.log("QR Code detected:", decodedText);
             setLoading(false);
             // Stop scanner when QR code is detected
             try {
-              await qrScanner.clear();
+              qrScanner.clear();
             } catch (e) {
               console.log("Error clearing scanner:", e);
             }
@@ -251,8 +249,9 @@ function App() {
             await processQRCode(decodedText);
           },
           (errorMessage: any) => {
+            console.log("QR scanner error callback triggered:", errorMessage);
             setLoading(false);
-            // Log errors for debugging
+            
             // Handle both string and object error messages
             const errorStr = typeof errorMessage === "string" 
               ? errorMessage 
@@ -260,31 +259,66 @@ function App() {
                 ? String(errorMessage.message)
                 : String(errorMessage);
             
+            console.log("Processed error string:", errorStr);
+            
             // Check for camera-specific errors
-            if (errorStr && (errorStr.includes("Permission") || errorStr.includes("NotAllowedError"))) {
+            if (errorStr && (
+              errorStr.includes("Permission") || 
+              errorStr.includes("NotAllowedError") ||
+              errorStr.includes("NotReadableError") ||
+              errorStr.includes("NotFoundError") ||
+              errorStr.includes("Could not start video stream")
+            )) {
               setScanning(false);
               setResult({
                 status: "error",
-                message: "Camera permission denied. Please allow camera access and try again.",
+                message: errorStr.includes("Permission") || errorStr.includes("NotAllowedError")
+                  ? "Camera permission denied. Please allow camera access in your browser settings and try again."
+                  : errorStr.includes("NotFoundError")
+                  ? "No camera found. Please connect a camera and try again."
+                  : "Camera access failed. Please check your camera and try again.",
               });
               return;
             }
 
+            // Only log non-common scanning errors
             if (errorStr && 
                 !errorStr.includes("NotFoundException") && 
                 !errorStr.includes("No QR code") &&
                 !errorStr.includes("No barcode") &&
                 !errorStr.includes("parse error") &&
-                !errorStr.includes("QR code parse error")) {
-              console.log("QR scanning error:", errorStr);
+                !errorStr.includes("QR code parse error") &&
+                !errorStr.includes("QR code parse error, error =")) {
+              console.log("QR scanning error (non-critical):", errorStr);
             }
           }
         );
 
-        // Hide loading after a short delay (camera should be starting)
+        console.log("QR scanner render() called, waiting for camera to start...");
+
+        // Check if camera started by looking for video element
+        const checkCameraStarted = () => {
+          const videoElement = element.querySelector("video");
+          if (videoElement) {
+            console.log("Camera video element found!");
+            setLoading(false);
+            // Check if video is actually playing
+            if (videoElement.readyState >= 2) {
+              console.log("Video is ready and should be playing");
+            }
+          } else {
+            console.log("Video element not found yet, will check again...");
+            setTimeout(checkCameraStarted, 1000);
+          }
+        };
+
+        // Start checking after a short delay
+        setTimeout(checkCameraStarted, 2000);
+        
+        // Also set a fallback to hide loading
         setTimeout(() => {
           setLoading(false);
-        }, 2000);
+        }, 5000);
       } catch (error: any) {
         console.error("Error initializing QR scanner:", error);
         setLoading(false);
@@ -296,14 +330,17 @@ function App() {
             : error.message || "Failed to initialize camera. Please check permissions and try again.",
         });
       }
-    }, 100); // Small delay to ensure DOM is ready
+    };
+
+    // Start initialization
+    initScanner();
 
     // Cleanup function
     return () => {
-      clearTimeout(timer);
       if (scanner) {
         try {
           scanner.clear();
+          setScanner(null);
         } catch (e) {
           console.log("Error in cleanup:", e);
         }
@@ -408,10 +445,36 @@ function App() {
       </header>
 
       <main className="app-main">
-        {/* Wallet Connection Section */}
-        {!walletConnected && (
-          <div className="wallet-section">
-            <p>Connect your wallet to start verifying products</p>
+        {/* Navigation Tabs */}
+        {walletConnected && (
+          <div className="nav-tabs">
+            <button
+              className={`nav-tab ${activeTab === "verify" ? "active" : ""}`}
+              onClick={() => setActiveTab("verify")}
+            >
+              Verify Product
+            </button>
+            <button
+              className={`nav-tab ${activeTab === "dashboard" ? "active" : ""}`}
+              onClick={() => setActiveTab("dashboard")}
+            >
+              Manufacturer Dashboard
+            </button>
+          </div>
+        )}
+
+        {/* Manufacturer Dashboard */}
+        {walletConnected && activeTab === "dashboard" && (
+          <ManufacturerDashboard />
+        )}
+
+        {/* Verification Section */}
+        {(!walletConnected || activeTab === "verify") && (
+          <>
+            {/* Wallet Connection Section */}
+            {!walletConnected && (
+              <div className="wallet-section">
+                <p>Connect your wallet to start verifying products</p>
             {!isMetaMaskInstalled() ? (
               <div className="result-section result-error">
                 <h3>MetaMask Required</h3>
@@ -456,17 +519,17 @@ function App() {
           </div>
         )}
 
-        {/* Scanner Section */}
-        {walletConnected && (
-          <>
-            {!scanning && !result && (
-              <div className="scan-section">
-                <p>Scan the QR code on your product to verify authenticity</p>
-                <button onClick={startScan} className="btn btn-primary">
-                  Start Scan
-                </button>
-              </div>
-            )}
+            {/* Scanner Section */}
+            {walletConnected && (
+              <>
+                {!scanning && !result && (
+                  <div className="scan-section">
+                    <p>Scan the QR code on your product to verify authenticity</p>
+                    <button onClick={startScan} className="btn btn-primary">
+                      Start Scan
+                    </button>
+                  </div>
+                )}
 
             {/* QR Code Scanner */}
             {scanning && (
@@ -514,19 +577,23 @@ function App() {
           </>
         )}
 
-        {/* Instructions */}
-        <div className="instructions">
-          <h3>How it works:</h3>
-          <ol>
-            <li>Connect your MetaMask wallet</li>
-            <li>Click "Start Scan" and allow camera access</li>
-            <li>Point your camera at the product QR code</li>
-            <li>View verification result on blockchain</li>
-          </ol>
-          <p className="note">
-            First scan = Authentic | Second scan = Possible Counterfeit
-          </p>
-        </div>
+            {/* Instructions - Only show on verify tab */}
+            {activeTab === "verify" && (
+              <div className="instructions">
+                <h3>How it works:</h3>
+                <ol>
+                  <li>Connect your MetaMask wallet</li>
+                  <li>Click "Start Scan" and allow camera access</li>
+                  <li>Point your camera at the product QR code</li>
+                  <li>View verification result on blockchain</li>
+                </ol>
+                <p className="note">
+                  First scan = Authentic | Second scan = Possible Counterfeit
+                </p>
+              </div>
+            )}
+          </>
+        )}
       </main>
 
       <footer className="app-footer">

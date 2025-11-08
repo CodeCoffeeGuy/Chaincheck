@@ -261,6 +261,132 @@ export async function getProductInfo(batchId: number): Promise<{
   }
 }
 
+/**
+ * Register a new product batch on the blockchain
+ * @param batchId Product batch ID
+ * @param name Product name
+ * @param brand Brand name
+ * @param serialNumbers Array of serial numbers (will be hashed)
+ * @returns Transaction receipt
+ */
+export async function registerProduct(
+  batchId: number,
+  name: string,
+  brand: string,
+  serialNumbers: string[]
+): Promise<any> {
+  try {
+    // Connect wallet and get signer
+    const accounts = await connectWallet();
+    if (accounts.length === 0) {
+      throw new Error("No accounts connected");
+    }
+
+    // Switch to correct network
+    await switchNetwork();
+
+    // Get contract with signer
+    const provider = getProvider();
+    const signer = await provider.getSigner();
+    const contract = getContract(signer);
+
+    // Generate serial hashes
+    const serialHashes = serialNumbers.map((serial) =>
+      generateSerialHash(batchId, serial)
+    );
+
+    // Register product
+    const tx = await contract.registerProduct(batchId, name, brand, serialHashes);
+    const receipt = await tx.wait();
+
+    return receipt;
+  } catch (error: any) {
+    if (error.message.includes("user rejected")) {
+      throw new Error("Transaction was rejected");
+    }
+    if (error.message.includes("insufficient funds")) {
+      throw new Error("Insufficient funds for transaction");
+    }
+    if (error.message.includes("not an authorized manufacturer")) {
+      throw new Error("You are not authorized to register products. Contact the contract owner.");
+    }
+    throw error;
+  }
+}
+
+/**
+ * Check if current account is authorized manufacturer
+ * @returns True if authorized
+ */
+export async function isAuthorizedManufacturer(): Promise<boolean> {
+  try {
+    const account = await getCurrentAccount();
+    if (!account) {
+      return false;
+    }
+
+    const contract = getContract();
+    return await contract.authorizedMakers(account);
+  } catch (error) {
+    console.error("Error checking authorization:", error);
+    return false;
+  }
+}
+
+/**
+ * Get contract statistics
+ * @returns Statistics object
+ */
+export async function getStatistics(): Promise<{
+  totalProducts: bigint;
+  totalVerifications: bigint;
+}> {
+  try {
+    const contract = getContract();
+    const totalProducts = await contract.totalProducts();
+    const totalVerifications = await contract.totalVerifications();
+
+    return {
+      totalProducts,
+      totalVerifications,
+    };
+  } catch (error) {
+    throw new Error("Failed to fetch statistics: " + error);
+  }
+}
+
+/**
+ * Get multiple products by batch IDs
+ * @param batchIds Array of batch IDs
+ * @returns Array of product information
+ */
+export async function getProductsBatch(
+  batchIds: number[]
+): Promise<
+  Array<{
+    batchId: number;
+    name: string;
+    brand: string;
+    exists: boolean;
+    registeredAt: bigint;
+  }>
+> {
+  try {
+    const contract = getContract();
+    const result = await contract.getProductsBatch(batchIds);
+
+    return batchIds.map((batchId, index) => ({
+      batchId,
+      name: result.names[index],
+      brand: result.brands[index],
+      exists: result.existsArray[index],
+      registeredAt: result.registeredAtArray[index],
+    }));
+  } catch (error) {
+    throw new Error("Failed to fetch products: " + error);
+  }
+}
+
 // Extend Window interface for TypeScript
 declare global {
   interface Window {

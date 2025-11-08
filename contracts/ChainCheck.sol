@@ -251,5 +251,74 @@ contract ChainCheck {
     function isSerialVerified(bytes32 serialHash) external view returns (bool) {
         return serialVerified[serialHash];
     }
+
+    /**
+     * @notice Get contract statistics
+     * @return totalProductsCount Total number of product batches registered
+     * @return totalVerificationsCount Total number of verifications performed
+     * @return totalManufacturers Number of authorized manufacturers
+     */
+    function getStatistics()
+        external
+        view
+        returns (
+            uint256 totalProductsCount,
+            uint256 totalVerificationsCount,
+            uint256 totalManufacturers
+        )
+    {
+        // Count manufacturers (this is a simple approach, could be optimized with an array)
+        // For now, we'll return the known counts
+        return (totalProducts, totalVerifications, 0); // Manufacturer count would need tracking
+    }
+
+    /**
+     * @notice Transfer contract ownership to a new address
+     * @dev Only current owner can call this
+     * @param newOwner Address of the new owner
+     */
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "ChainCheck: invalid new owner address");
+        require(newOwner != owner, "ChainCheck: new owner must be different");
+        
+        address oldOwner = owner;
+        owner = newOwner;
+        
+        emit ManufacturerAuthorized(oldOwner, false);
+        emit ManufacturerAuthorized(newOwner, true);
+    }
+
+    /**
+     * @notice Get multiple product batches by their IDs
+     * @param batchIds Array of batch IDs to query
+     * @return names Array of product names
+     * @return brands Array of brand names
+     * @return existsArray Array of existence flags
+     * @return registeredAtArray Array of registration timestamps
+     */
+    function getProductsBatch(uint256[] memory batchIds)
+        external
+        view
+        returns (
+            string[] memory names,
+            string[] memory brands,
+            bool[] memory existsArray,
+            uint256[] memory registeredAtArray
+        )
+    {
+        uint256 length = batchIds.length;
+        names = new string[](length);
+        brands = new string[](length);
+        existsArray = new bool[](length);
+        registeredAtArray = new uint256[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            Product memory product = products[batchIds[i]];
+            names[i] = product.name;
+            brands[i] = product.brand;
+            existsArray[i] = product.exists;
+            registeredAtArray[i] = product.registeredAt;
+        }
+    }
 }
 
