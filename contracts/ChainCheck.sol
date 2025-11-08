@@ -19,6 +19,21 @@ pragma solidity ^0.8.20;
  */
 contract ChainCheck {
     /**
+     * @notice Custom errors for gas optimization
+     */
+    error NotOwner();
+    error NotAuthorized();
+    error InvalidAddress();
+    error InvalidBatchId();
+    error BatchExists();
+    error BatchNotFound();
+    error EmptyName();
+    error EmptyBrand();
+    error NoSerials();
+    error InvalidOwner();
+    error ContractPaused();
+    error ContractNotPaused();
+    /**
      * @notice Product information structure
      * @param name Product name
      * @param brand Brand name
@@ -67,6 +82,18 @@ contract ChainCheck {
     uint256 public totalVerifications;
 
     /**
+     * @notice Array to track all authorized manufacturers
+     * @dev Used for statistics and enumeration
+     */
+    address[] public manufacturerList;
+
+    /**
+     * @notice Pause state of the contract
+     * @dev When paused, only owner functions work, verification is disabled
+     */
+    bool public paused;
+
+    /**
      * @notice Event emitted when a product is registered
      * @param batchId Unique batch identifier
      * @param name Product name
@@ -102,10 +129,16 @@ contract ChainCheck {
     event ManufacturerAuthorized(address indexed maker, bool authorized);
 
     /**
+     * @notice Event emitted when contract is paused or unpaused
+     * @param paused True if paused, false if unpaused
+     */
+    event Paused(bool paused);
+
+    /**
      * @notice Modifier to restrict function access to contract owner
      */
     modifier onlyOwner() {
-        require(msg.sender == owner, "ChainCheck: caller is not the owner");
+        if (msg.sender != owner) revert NotOwner();
         _;
     }
 
@@ -113,10 +146,23 @@ contract ChainCheck {
      * @notice Modifier to restrict function access to authorized manufacturers
      */
     modifier onlyMaker() {
-        require(
-            authorizedMakers[msg.sender],
-            "ChainCheck: not an authorized manufacturer"
-        );
+        if (!authorizedMakers[msg.sender]) revert NotAuthorized();
+        _;
+    }
+
+    /**
+     * @notice Modifier to check if contract is not paused
+     */
+    modifier whenNotPaused() {
+        if (paused) revert ContractPaused();
+        _;
+    }
+
+    /**
+     * @notice Modifier to check if contract is paused
+     */
+    modifier whenPaused() {
+        if (!paused) revert ContractNotPaused();
         _;
     }
 
@@ -126,6 +172,7 @@ contract ChainCheck {
     constructor() {
         owner = msg.sender;
         authorizedMakers[msg.sender] = true;
+        manufacturerList.push(msg.sender);
         emit ManufacturerAuthorized(msg.sender, true);
     }
 
@@ -139,8 +186,25 @@ contract ChainCheck {
         address maker,
         bool authorized
     ) external onlyOwner {
-        require(maker != address(0), "ChainCheck: invalid address");
+        if (maker == address(0)) revert InvalidAddress();
+        
+        bool wasAuthorized = authorizedMakers[maker];
         authorizedMakers[maker] = authorized;
+        
+        // Add to or remove from manufacturer list
+        if (authorized && !wasAuthorized) {
+            manufacturerList.push(maker);
+        } else if (!authorized && wasAuthorized) {
+            // Remove from list (keep last element, swap with current, pop)
+            for (uint256 i = 0; i < manufacturerList.length; i++) {
+                if (manufacturerList[i] == maker) {
+                    manufacturerList[i] = manufacturerList[manufacturerList.length - 1];
+                    manufacturerList.pop();
+                    break;
+                }
+            }
+        }
+        
         emit ManufacturerAuthorized(maker, authorized);
     }
 
@@ -160,12 +224,12 @@ contract ChainCheck {
         string memory name,
         string memory brand,
         bytes32[] memory serialHashes
-    ) external onlyMaker {
-        require(batchId > 0, "ChainCheck: invalid batch ID");
-        require(bytes(name).length > 0, "ChainCheck: name required");
-        require(bytes(brand).length > 0, "ChainCheck: brand required");
-        require(serialHashes.length > 0, "ChainCheck: serials required");
-        require(!products[batchId].exists, "ChainCheck: batch already exists");
+    ) external onlyMaker whenNotPaused {
+        if (batchId == 0) revert InvalidBatchId();
+        if (bytes(name).length == 0) revert EmptyName();
+        if (bytes(brand).length == 0) revert EmptyBrand();
+        if (serialHashes.length == 0) revert NoSerials();
+        if (products[batchId].exists) revert BatchExists();
 
         // Register the product batch
         products[batchId] = Product({
@@ -200,9 +264,9 @@ contract ChainCheck {
     function verify(
         bytes32 serialHash,
         uint256 batchId
-    ) external returns (bool) {
-        require(batchId > 0, "ChainCheck: invalid batch ID");
-        require(products[batchId].exists, "ChainCheck: product batch not found");
+    ) external whenNotPaused returns (bool) {
+        if (batchId == 0) revert InvalidBatchId();
+        if (!products[batchId].exists) revert BatchNotFound();
 
         // Check if this serial has been verified before
         bool isAuthentic = !serialVerified[serialHash];
@@ -267,9 +331,15 @@ contract ChainCheck {
             uint256 totalManufacturers
         )
     {
-        // Count manufacturers (this is a simple approach, could be optimized with an array)
-        // For now, we'll return the known counts
-        return (totalProducts, totalVerifications, 0); // Manufacturer count would need tracking
+        return (totalProducts, totalVerifications, manufacturerList.length);
+    }
+
+    /**
+     * @notice Get all authorized manufacturers
+     * @return manufacturers Array of manufacturer addresses
+     */
+    function getManufacturers() external view returns (address[] memory) {
+        return manufacturerList;
     }
 
     /**
@@ -278,14 +348,79 @@ contract ChainCheck {
      * @param newOwner Address of the new owner
      */
     function transferOwnership(address newOwner) external onlyOwner {
-        require(newOwner != address(0), "ChainCheck: invalid new owner address");
-        require(newOwner != owner, "ChainCheck: new owner must be different");
+        if (newOwner == address(0)) revert InvalidAddress();
+        if (newOwner == owner) revert InvalidOwner();
         
         address oldOwner = owner;
         owner = newOwner;
         
+        // Update authorization status
+        authorizedMakers[oldOwner] = false;
+        authorizedMakers[newOwner] = true;
+        
         emit ManufacturerAuthorized(oldOwner, false);
         emit ManufacturerAuthorized(newOwner, true);
+    }
+
+    /**
+     * @notice Batch verify multiple products at once
+     * @dev More gas efficient for verifying multiple products
+     * @param serialHashes Array of hashed serial numbers
+     * @param batchIds Array of corresponding batch IDs
+     * @return results Array of verification results (true = authentic, false = fake)
+     */
+    function batchVerify(
+        bytes32[] memory serialHashes,
+        uint256[] memory batchIds
+    ) external whenNotPaused returns (bool[] memory results) {
+        require(
+            serialHashes.length == batchIds.length,
+            "ChainCheck: arrays length mismatch"
+        );
+
+        results = new bool[](serialHashes.length);
+
+        for (uint256 i = 0; i < serialHashes.length; i++) {
+            if (batchIds[i] == 0) {
+                results[i] = false;
+                continue;
+            }
+            if (!products[batchIds[i]].exists) {
+                results[i] = false;
+                continue;
+            }
+
+            bool isAuthentic = !serialVerified[serialHashes[i]];
+            results[i] = isAuthentic;
+
+            if (isAuthentic) {
+                serialVerified[serialHashes[i]] = true;
+                totalVerifications++;
+            }
+
+            emit Verified(serialHashes[i], batchIds[i], isAuthentic, msg.sender);
+        }
+    }
+
+    /**
+     * @notice Pause the contract (emergency stop)
+     * @dev Only owner can pause. When paused:
+     *      - Product registration is disabled
+     *      - Product verification is disabled
+     *      - Owner functions still work
+     */
+    function pause() external onlyOwner whenNotPaused {
+        paused = true;
+        emit Paused(true);
+    }
+
+    /**
+     * @notice Unpause the contract
+     * @dev Only owner can unpause
+     */
+    function unpause() external onlyOwner whenPaused {
+        paused = false;
+        emit Paused(false);
     }
 
     /**

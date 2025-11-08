@@ -92,13 +92,13 @@ describe("ChainCheck", function () {
         chaincheck
           .connect(consumer)
           .authorizeManufacturer(otherAccount.address, true)
-      ).to.be.revertedWith("ChainCheck: caller is not the owner");
+      ).to.be.revertedWithCustomError(chaincheck, "NotOwner");
     });
 
     it("Should reject authorization with zero address", async function () {
       await expect(
         chaincheck.authorizeManufacturer(ethers.ZeroAddress, true)
-      ).to.be.revertedWith("ChainCheck: invalid address");
+      ).to.be.revertedWithCustomError(chaincheck, "InvalidAddress");
     });
   });
 
@@ -130,7 +130,7 @@ describe("ChainCheck", function () {
         chaincheck
           .connect(consumer)
           .registerProduct(batchId, productName, productBrand, serialHashes)
-      ).to.be.revertedWith("ChainCheck: not an authorized manufacturer");
+      ).to.be.revertedWithCustomError(chaincheck, "NotAuthorized");
     });
 
     it("Should reject registration with invalid batch ID", async function () {
@@ -138,7 +138,7 @@ describe("ChainCheck", function () {
         chaincheck
           .connect(manufacturer)
           .registerProduct(0, productName, productBrand, serialHashes)
-      ).to.be.revertedWith("ChainCheck: invalid batch ID");
+      ).to.be.revertedWithCustomError(chaincheck, "InvalidBatchId");
     });
 
     it("Should reject registration with empty name", async function () {
@@ -146,7 +146,7 @@ describe("ChainCheck", function () {
         chaincheck
           .connect(manufacturer)
           .registerProduct(batchId, "", productBrand, serialHashes)
-      ).to.be.revertedWith("ChainCheck: name required");
+      ).to.be.revertedWithCustomError(chaincheck, "EmptyName");
     });
 
     it("Should reject registration with empty brand", async function () {
@@ -154,7 +154,7 @@ describe("ChainCheck", function () {
         chaincheck
           .connect(manufacturer)
           .registerProduct(batchId, productName, "", serialHashes)
-      ).to.be.revertedWith("ChainCheck: brand required");
+      ).to.be.revertedWithCustomError(chaincheck, "EmptyBrand");
     });
 
     it("Should reject registration with empty serials array", async function () {
@@ -162,7 +162,7 @@ describe("ChainCheck", function () {
         chaincheck
           .connect(manufacturer)
           .registerProduct(batchId, productName, productBrand, [])
-      ).to.be.revertedWith("ChainCheck: serials required");
+      ).to.be.revertedWithCustomError(chaincheck, "NoSerials");
     });
 
     it("Should reject duplicate batch registration", async function () {
@@ -174,7 +174,7 @@ describe("ChainCheck", function () {
         chaincheck
           .connect(manufacturer)
           .registerProduct(batchId, productName, productBrand, serialHashes)
-      ).to.be.revertedWith("ChainCheck: batch already exists");
+      ).to.be.revertedWithCustomError(chaincheck, "BatchExists");
     });
   });
 
@@ -231,13 +231,13 @@ describe("ChainCheck", function () {
       const nonExistentBatchId = 999;
       await expect(
         chaincheck.connect(consumer).verify(serialHash, nonExistentBatchId)
-      ).to.be.revertedWith("ChainCheck: product batch not found");
+      ).to.be.revertedWithCustomError(chaincheck, "BatchNotFound");
     });
 
     it("Should reject verification with invalid batch ID", async function () {
       await expect(
         chaincheck.connect(consumer).verify(serialHash, 0)
-      ).to.be.revertedWith("ChainCheck: invalid batch ID");
+      ).to.be.revertedWithCustomError(chaincheck, "InvalidBatchId");
     });
 
     it("Should allow anyone to verify products", async function () {
@@ -301,6 +301,103 @@ describe("ChainCheck", function () {
         .registerProduct(batchId, productName, productBrand, largeSerialArray);
 
       expect(await chaincheck.totalProducts()).to.equal(1);
+    });
+  });
+
+  describe("Pausable Functionality", function () {
+    beforeEach(async function () {
+      // Register a product for testing
+      const serialHashes = [createSerialHash(batchId, serialNumber)];
+      await chaincheck
+        .connect(manufacturer)
+        .registerProduct(batchId, productName, productBrand, serialHashes);
+    });
+
+    it("Should allow owner to pause contract", async function () {
+      await expect(chaincheck.pause())
+        .to.emit(chaincheck, "Paused")
+        .withArgs(true);
+
+      expect(await chaincheck.paused()).to.be.true;
+    });
+
+    it("Should allow owner to unpause contract", async function () {
+      // Pause first
+      await chaincheck.pause();
+      expect(await chaincheck.paused()).to.be.true;
+
+      // Unpause
+      await expect(chaincheck.unpause())
+        .to.emit(chaincheck, "Paused")
+        .withArgs(false);
+
+      expect(await chaincheck.paused()).to.be.false;
+    });
+
+    it("Should reject pause from non-owner", async function () {
+      await expect(
+        chaincheck.connect(consumer).pause()
+      ).to.be.revertedWithCustomError(chaincheck, "NotOwner");
+    });
+
+    it("Should reject unpause from non-owner", async function () {
+      await chaincheck.pause();
+      await expect(
+        chaincheck.connect(consumer).unpause()
+      ).to.be.revertedWithCustomError(chaincheck, "NotOwner");
+    });
+
+    it("Should prevent product registration when paused", async function () {
+      await chaincheck.pause();
+      const serialHashes = [createSerialHash(2, "SN999")];
+
+      await expect(
+        chaincheck
+          .connect(manufacturer)
+          .registerProduct(2, "Test Product", "Test Brand", serialHashes)
+      ).to.be.revertedWithCustomError(chaincheck, "ContractPaused");
+    });
+
+    it("Should prevent product verification when paused", async function () {
+      await chaincheck.pause();
+      const serialHash = createSerialHash(batchId, serialNumber);
+
+      await expect(
+        chaincheck.connect(consumer).verify(serialHash, batchId)
+      ).to.be.revertedWithCustomError(chaincheck, "ContractPaused");
+    });
+
+    it("Should prevent batch verification when paused", async function () {
+      await chaincheck.pause();
+      const serialHash = createSerialHash(batchId, serialNumber);
+
+      await expect(
+        chaincheck.connect(consumer).batchVerify([serialHash], [batchId])
+      ).to.be.revertedWithCustomError(chaincheck, "ContractPaused");
+    });
+
+    it("Should allow owner functions when paused", async function () {
+      await chaincheck.pause();
+      
+      // Owner should still be able to authorize manufacturers
+      await expect(
+        chaincheck.authorizeManufacturer(otherAccount.address, true)
+      ).to.emit(chaincheck, "ManufacturerAuthorized");
+    });
+
+    it("Should reject pause when already paused", async function () {
+      await chaincheck.pause();
+      await expect(chaincheck.pause()).to.be.revertedWithCustomError(
+        chaincheck,
+        "ContractPaused"
+      );
+    });
+
+    it("Should reject unpause when not paused", async function () {
+      await expect(chaincheck.unpause()).to.be.revertedWithCustomError(
+        chaincheck,
+        "ContractNotPaused"
+      );
     });
   });
 });
