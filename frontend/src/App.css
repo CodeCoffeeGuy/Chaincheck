@@ -1121,6 +1121,87 @@ body {
   }
 }
 
+/* Footer Styles */
+.app-footer {
+  margin-top: auto;
+  padding: 32px 0;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-footer p {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.github-link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.github-link svg {
+  flex-shrink: 0;
+}
+
+.github-link span {
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .app-footer {
+    padding: 24px 0;
+  }
+
+  .footer-content {
+    gap: 12px;
+  }
+
+  .app-footer p {
+    font-size: 0.85rem;
+  }
+
+  .github-link {
+    font-size: 0.85rem;
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-footer {
+    padding: 20px 0;
+  }
+
+  .github-link {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+}
+
 /* Safe Area Support for Notched Devices */
 @supports (padding: max(0px)) {
   .app {

@@ -2,6 +2,9 @@
 
 **Blockchain-based Product Authenticity Verification System**
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Open Source](https://img.shields.io/badge/Open%20Source-Yes-green.svg)](https://github.com/CodeAndCoffeeGuy/Chaincheck)
+
 ChainCheck is a decentralized application (dApp) that enables consumers to verify product authenticity using blockchain technology. By scanning a QR code, users can instantly determine if a product is genuine or potentially counterfeit.
 
 ## Problem
@@ -294,6 +297,22 @@ Contributions are welcome! Please follow these steps:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Open Source
+
+ChainCheck is open source and available on GitHub. Contributions are welcome!
+
+- **Repository**: [https://github.com/CodeAndCoffeeGuy/Chaincheck](https://github.com/CodeAndCoffeeGuy/Chaincheck)
+- **Live Demo**: [https://chaincheck.io](https://chaincheck.io)
+- **Issues**: Report bugs or request features on GitHub
+
+## Security
+
+**Important Security Notes:**
+- Never commit `.env` files or private keys
+- All sensitive data uses environment variables
+- Private keys are only used locally for deployment
+- Frontend code is safe to be public (no secrets exposed)
 
 ## Roadmap
 
