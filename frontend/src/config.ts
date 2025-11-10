@@ -6,8 +6,10 @@
  * 2. NETWORK_CONFIG: RPC URLs for different networks
  */
 
-// Contract address - Update this after deployment
-export const CONTRACT_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+// Contract address - Update this after deploying to Polygon mainnet
+// Deploy with: npx hardhat run scripts/deploy.js --network polygon
+// You can also set VITE_CONTRACT_ADDRESS in .env file
+export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x0000000000000000000000000000000000000000";
 
 // Network configuration
 export const NETWORK_CONFIG = {
@@ -20,7 +22,7 @@ export const NETWORK_CONFIG = {
   // Polygon mainnet
   polygon: {
     chainId: "0x89", // 137 in hex
-    rpcUrl: "https://polygon-rpc.com",
+    rpcUrl: import.meta.env.VITE_POLYGON_RPC_URL || "https://polygon-rpc.com",
     name: "Polygon Mainnet",
   },
   // Local development
@@ -32,7 +34,9 @@ export const NETWORK_CONFIG = {
 };
 
 // Current network to use (change based on deployment)
-export const CURRENT_NETWORK = NETWORK_CONFIG.localhost;
+// Options: NETWORK_CONFIG.localhost, NETWORK_CONFIG.mumbai, NETWORK_CONFIG.polygon
+// PRODUCTION: Use NETWORK_CONFIG.polygon
+export const CURRENT_NETWORK = NETWORK_CONFIG.polygon;
 
 // Contract ABI - This will be imported from the compiled contract
 // After deployment, copy the ABI from artifacts/contracts/ChainCheck.sol/ChainCheck.json

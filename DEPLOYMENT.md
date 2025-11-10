@@ -65,17 +65,33 @@ This guide provides step-by-step instructions for deploying ChainCheck to produc
 
 ## Step 2: Frontend Configuration
 
-1. **Update Contract Address**
+### For Production (Polygon Mainnet)
+
+1. **Deploy Contract First**
+   ```bash
+   npx hardhat run scripts/deploy.js --network polygon
+   ```
+   Copy the deployed contract address from the output.
+
+2. **Configure Environment Variables**
+   - Create `frontend/.env` file:
+   ```bash
+   VITE_CONTRACT_ADDRESS=0xYourDeployedContractAddress
+   # Optional: Custom RPC URL
+   # VITE_POLYGON_RPC_URL=https://polygon-rpc.com
+   ```
+
+3. **Update Contract Address** (Alternative method)
    - Open `frontend/src/config.ts`
    - Update `CONTRACT_ADDRESS` with your deployed address
-   - Set `CURRENT_NETWORK` to match your deployment (mumbai or polygon)
+   - The frontend is already configured for Polygon mainnet (`CURRENT_NETWORK = NETWORK_CONFIG.polygon`)
 
-2. **Update Contract ABI** (if modified)
+4. **Update Contract ABI** (if modified)
    - After compiling contracts, copy the ABI from:
      `artifacts/contracts/ChainCheck.sol/ChainCheck.json`
    - Replace the `CONTRACT_ABI` array in `frontend/src/config.ts`
 
-3. **Build Frontend**
+5. **Build Frontend**
    ```bash
    cd frontend
    npm install
