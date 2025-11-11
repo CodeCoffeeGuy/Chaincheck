@@ -1,5 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getContract, generateSerialHash } from "../utils/blockchain";
+import {
+  saveVerificationHistoryForm,
+  getVerificationHistoryForm,
+  addRecentSearch,
+  getRecentSearches,
+  clearRecentSearches,
+} from "../utils/localStorage";
+import SkeletonLoader from "./SkeletonLoader";
 import "./VerificationHistory.css";
 
 /**
@@ -14,6 +22,65 @@ function VerificationHistory() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [count, setCount] = useState<number | null>(null);
+  const [recentSearches, setRecentSearches] = useState<Array<{ batchId: string; serialNumber: string; timestamp: number }>>([]);
+  const [showRecentSearches, setShowRecentSearches] = useState(false);
+  const batchIdInputRef = useRef<HTMLInputElement>(null);
+  const serialNumberInputRef = useRef<HTMLInputElement>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Load saved form data on mount
+  useEffect(() => {
+    const saved = getVerificationHistoryForm();
+    if (saved) {
+      setBatchId(saved.batchId);
+      setSerialNumber(saved.serialNumber);
+    }
+    setRecentSearches(getRecentSearches());
+  }, []);
+
+  // Auto-save form data
+  useEffect(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    if (batchId || serialNumber) {
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        saveVerificationHistoryForm(batchId, serialNumber);
+      }, 1000); // Save after 1 second of no typing
+    }
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [batchId, serialNumber]);
+
+  // Close recent searches dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        showRecentSearches &&
+        batchIdInputRef.current &&
+        serialNumberInputRef.current &&
+        !batchIdInputRef.current.contains(target) &&
+        !serialNumberInputRef.current.contains(target) &&
+        !target.closest(".recent-searches-dropdown")
+      ) {
+        setShowRecentSearches(false);
+      }
+    };
+
+    if (showRecentSearches) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showRecentSearches]);
 
   /**
    * Load verification history
@@ -51,12 +118,26 @@ function VerificationHistory() {
       }));
 
       setHistory(formattedHistory);
+      
+      // Add to recent searches
+      addRecentSearch(batchId, serialNumber);
+      setRecentSearches(getRecentSearches());
     } catch (err: any) {
       console.error("Error loading history:", err);
       setError(err.message || "Failed to load verification history");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRecentSearchClick = (search: { batchId: string; serialNumber: string }) => {
+    setBatchId(search.batchId);
+    setSerialNumber(search.serialNumber);
+    setShowRecentSearches(false);
+    // Auto-load after setting values
+    setTimeout(() => {
+      loadHistory();
+    }, 100);
   };
 
   /**
@@ -141,20 +222,54 @@ function VerificationHistory() {
         <div className="form-group">
           <label>Batch ID</label>
           <input
+            ref={batchIdInputRef}
             type="number"
             value={batchId}
             onChange={(e) => setBatchId(e.target.value)}
+            onFocus={() => setShowRecentSearches(recentSearches.length > 0)}
             placeholder="Enter batch ID"
           />
         </div>
         <div className="form-group">
           <label>Serial Number</label>
-          <input
-            type="text"
-            value={serialNumber}
-            onChange={(e) => setSerialNumber(e.target.value)}
-            placeholder="Enter serial number"
-          />
+          <div className="input-with-recent">
+            <input
+              ref={serialNumberInputRef}
+              type="text"
+              value={serialNumber}
+              onChange={(e) => setSerialNumber(e.target.value)}
+              onFocus={() => setShowRecentSearches(recentSearches.length > 0)}
+              placeholder="Enter serial number"
+            />
+            {showRecentSearches && recentSearches.length > 0 && (
+              <div className="recent-searches-dropdown">
+                <div className="recent-searches-header">
+                  <span>Recent Searches</span>
+                  <button
+                    onClick={() => {
+                      clearRecentSearches();
+                      setRecentSearches([]);
+                      setShowRecentSearches(false);
+                    }}
+                    className="clear-recent-btn"
+                    title="Clear all"
+                  >
+                    Clear
+                  </button>
+                </div>
+                {recentSearches.map((search, index) => (
+                  <button
+                    key={index}
+                    className="recent-search-item"
+                    onClick={() => handleRecentSearchClick(search)}
+                  >
+                    <span className="recent-search-batch">Batch: {search.batchId}</span>
+                    <span className="recent-search-serial">Serial: {search.serialNumber}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <button onClick={loadHistory} className="btn btn-primary" disabled={loading}>
           {loading ? "Loading..." : "Load History"}
@@ -223,8 +338,7 @@ function VerificationHistory() {
 
       {loading && (
         <div className="loading-section">
-          <div className="spinner"></div>
-          <p>Loading verification history...</p>
+          <SkeletonLoader type="table" />
         </div>
       )}
     </div>
