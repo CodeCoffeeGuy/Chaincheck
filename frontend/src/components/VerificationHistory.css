@@ -1,18 +1,47 @@
 .verification-history {
-  padding: 32px;
-  background: #1a1a1a;
-  border-radius: 16px;
+  padding: 48px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border-radius: 20px;
   margin: 20px 0;
   border: 1px solid #2a2a2a;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.verification-history::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #FF6B35, transparent);
 }
 
 .verification-history h2 {
   color: #ffffff;
-  margin-bottom: 8px;
-  font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -1.5px;
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  padding-bottom: 16px;
+}
+
+.verification-history h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, #FF6B35 0%, #ff8c42 100%);
+  border-radius: 2px;
 }
 
 .verification-history .subtitle {
@@ -25,8 +54,18 @@
   display: flex;
   gap: 15px;
   flex-wrap: wrap;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
   align-items: flex-start;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(15, 15, 15, 0.5) 0%, rgba(26, 26, 26, 0.5) 100%);
+  border-radius: 12px;
+  border: 1px solid #2a2a2a;
+  transition: all 0.3s ease;
+}
+
+.history-form:hover {
+  border-color: #3a3a3a;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .history-form .btn {
@@ -107,10 +146,11 @@
 .history-list table {
   width: 100%;
   border-collapse: collapse;
-  background: #0f0f0f;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+  border-radius: 16px;
   overflow: hidden;
   border: 1px solid #2a2a2a;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .history-list thead {
