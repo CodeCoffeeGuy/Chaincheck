@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import {
   verifyProduct,
@@ -10,6 +10,7 @@ import {
 import { validateQRCodeOffline } from "./utils/qrValidator";
 import { copyToClipboardWithFeedback } from "./utils/clipboard";
 import { useToast } from "./contexts/ToastContext";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { CURRENT_NETWORK } from "./config";
 import ManufacturerDashboard from "./components/ManufacturerDashboard";
 import VerificationHistory from "./components/VerificationHistory";
@@ -408,13 +409,13 @@ function App() {
   /**
    * Stop QR scanner
    */
-  const stopScan = () => {
+  const stopScan = useCallback(() => {
     if (scanner) {
       scanner.clear();
       setScanner(null);
     }
     setScanning(false);
-  };
+  }, [scanner]);
 
 
   /**
@@ -518,6 +519,82 @@ function App() {
     setResult(null);
     setLoading(false);
   };
+
+  // Keyboard shortcuts - memoized to prevent recreation on every render
+  const shortcuts = useMemo(() => [
+    {
+      key: "k",
+      ctrlKey: true,
+      metaKey: true,
+      action: () => {
+        if (walletConnected) {
+          showToast("Keyboard Shortcuts:\nEsc - Cancel scan\nCtrl/Cmd+K - Show shortcuts\n1-4 - Navigate tabs", "info", 5000);
+        }
+      },
+      description: "Show keyboard shortcuts",
+    },
+    {
+      key: "Escape",
+      action: () => {
+        if (scanning) {
+          stopScan();
+          showToast("Scan cancelled", "info", 2000);
+        }
+      },
+      description: "Cancel scan",
+    },
+    {
+      key: "1",
+      ctrlKey: true,
+      metaKey: true,
+      action: () => {
+        if (walletConnected) {
+          setActiveTab("verify");
+          window.location.hash = "";
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      },
+      description: "Go to Verify Product",
+    },
+    {
+      key: "2",
+      ctrlKey: true,
+      metaKey: true,
+      action: () => {
+        if (walletConnected) {
+          setActiveTab("history");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      },
+      description: "Go to Verification History",
+    },
+    {
+      key: "3",
+      ctrlKey: true,
+      metaKey: true,
+      action: () => {
+        if (walletConnected) {
+          setActiveTab("analytics");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      },
+      description: "Go to Analytics",
+    },
+    {
+      key: "4",
+      ctrlKey: true,
+      metaKey: true,
+      action: () => {
+        if (walletConnected) {
+          setActiveTab("dashboard");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      },
+      description: "Go to Manufacturer Dashboard",
+    },
+  ], [walletConnected, scanning, showToast, stopScan]);
+  
+  useKeyboardShortcuts(shortcuts);
 
   return (
     <div className="app">

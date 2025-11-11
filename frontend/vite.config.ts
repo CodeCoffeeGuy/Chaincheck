@@ -1,9 +1,23 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { copyFileSync } from 'fs'
+import { join } from 'path'
 
 // Vite configuration for ChainCheck frontend
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'copy-service-worker',
+      closeBundle() {
+        // Copy service worker to dist folder
+        copyFileSync(
+          join(__dirname, 'public/sw.js'),
+          join(__dirname, 'dist/sw.js')
+        )
+      },
+    },
+  ],
   server: {
     port: 3000,
     host: true,
@@ -12,5 +26,6 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  publicDir: 'public',
 })
 

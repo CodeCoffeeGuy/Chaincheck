@@ -62,29 +62,74 @@ function VerificationHistory() {
   /**
    * Export history as CSV
    */
-  const exportHistory = () => {
+  const exportHistory = (format: "csv" | "json" = "csv") => {
     if (history.length === 0) return;
 
-    const csv = [
-      ["Date", "Batch ID", "Verifier", "Status", "Timestamp"].join(","),
-      ...history.map((record) =>
-        [
-          record.date,
-          record.batchId,
-          record.verifier,
-          record.isAuthentic ? "Authentic" : "Counterfeit",
-          record.timestamp,
-        ].join(",")
-      ),
-    ].join("\n");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `verification-history-${batchId}-${serialNumber}-${timestamp}`;
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `verification-history-${batchId}-${serialNumber}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    if (format === "csv") {
+      // Escape CSV values
+      const escapeCsv = (value: any) => {
+        if (value === null || value === undefined) return "";
+        const str = String(value);
+        if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
+      const csv = [
+        ["Date", "Batch ID", "Serial Number", "Verifier", "Status", "Timestamp", "Unix Timestamp"].join(","),
+        ...history.map((record) =>
+          [
+            escapeCsv(record.date),
+            escapeCsv(record.batchId),
+            escapeCsv(serialNumber),
+            escapeCsv(record.verifier),
+            escapeCsv(record.isAuthentic ? "Authentic" : "Counterfeit"),
+            escapeCsv(record.timestamp),
+            escapeCsv(record.timestamp),
+          ].join(",")
+        ),
+      ].join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${filename}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else {
+      // Export as JSON
+      const jsonData = {
+        exportDate: new Date().toISOString(),
+        batchId: parseInt(batchId),
+        serialNumber: serialNumber,
+        totalVerifications: count,
+        verifications: history.map((record) => ({
+          date: record.date,
+          batchId: record.batchId,
+          serialNumber: serialNumber,
+          verifier: record.verifier,
+          status: record.isAuthentic ? "Authentic" : "Counterfeit",
+          isAuthentic: record.isAuthentic,
+          timestamp: record.timestamp,
+          unixTimestamp: record.timestamp,
+          serialHash: record.serialHash,
+        })),
+      };
+
+      const json = JSON.stringify(jsonData, null, 2);
+      const blob = new Blob([json], { type: "application/json;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${filename}.json`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
   };
 
   return (
@@ -133,8 +178,11 @@ function VerificationHistory() {
       {history.length > 0 && (
         <>
           <div className="history-actions">
-            <button onClick={exportHistory} className="btn btn-secondary">
+            <button onClick={() => exportHistory("csv")} className="btn btn-secondary">
               Export as CSV
+            </button>
+            <button onClick={() => exportHistory("json")} className="btn btn-secondary">
+              Export as JSON
             </button>
           </div>
           <div className="history-list">
