@@ -5,20 +5,17 @@
  * This provides immediate feedback before attempting on-chain verification
  */
 
-export interface QRValidationResult {
-  valid: boolean;
-  format: "colon" | "json" | "invalid";
-  batchId?: number;
-  serialNumber?: string;
-  error?: string;
-}
-
 /**
  * Validate QR code data format offline
- * @param qrData Raw QR code string
- * @returns Validation result with parsed data if valid
+ * @param {string} qrData - Raw QR code string
+ * @returns {Object} Validation result with parsed data if valid
+ * @returns {boolean} returns.valid - Whether QR code is valid
+ * @returns {string} returns.format - Format type ("colon", "json", or "invalid")
+ * @returns {number} [returns.batchId] - Parsed batch ID if valid
+ * @returns {string} [returns.serialNumber] - Parsed serial number if valid
+ * @returns {string} [returns.error] - Error message if invalid
  */
-export function validateQRCodeOffline(qrData: string): QRValidationResult {
+export function validateQRCodeOffline(qrData) {
   if (!qrData || typeof qrData !== "string") {
     return {
       valid: false,
@@ -119,8 +116,10 @@ export function validateQRCodeOffline(qrData: string): QRValidationResult {
 
 /**
  * Get user-friendly error message for invalid QR codes
+ * @param {Object} result - Validation result from validateQRCodeOffline
+ * @returns {string} Error message or empty string if valid
  */
-export function getQRValidationErrorMessage(result: QRValidationResult): string {
+export function getQRValidationErrorMessage(result) {
   if (result.valid) {
     return "";
   }

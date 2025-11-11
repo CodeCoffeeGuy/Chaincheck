@@ -7,11 +7,11 @@ import {
   getCurrentAccount,
   connectWallet,
 } from "./utils/blockchain";
-import { validateQRCodeOffline } from "./utils/qrValidator";
+import { validateQRCodeOffline, type QRValidationResult } from "./utils/qrValidator";
 import { copyToClipboardWithFeedback } from "./utils/clipboard";
 import { useToast } from "./contexts/ToastContext";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
-import { addCachedVerification, getCachedVerification } from "./utils/transactionCache";
+import { addCachedVerification, getCachedVerification, type CachedVerification } from "./utils/transactionCache";
 import { CURRENT_NETWORK } from "./config";
 import ManufacturerDashboard from "./components/ManufacturerDashboard";
 import VerificationHistory from "./components/VerificationHistory";
@@ -429,7 +429,7 @@ function App() {
 
     try {
       // First, validate QR code format offline
-      const validation = validateQRCodeOffline(qrData);
+      const validation: QRValidationResult = validateQRCodeOffline(qrData);
       if (!validation.valid || !validation.batchId || !validation.serialNumber) {
         throw new Error(validation.error || "Invalid QR code format");
       }
@@ -440,7 +440,7 @@ function App() {
       const serialHash = generateSerialHash(batchId, serialNumber);
 
       // Check cache first
-      const cached = getCachedVerification(serialHash);
+      const cached: CachedVerification | null = getCachedVerification(serialHash);
       if (cached && cached.txHash) {
         // Use cached result if available
         setResult({
@@ -627,7 +627,7 @@ function App() {
       },
       description: "Go to Manufacturer Dashboard",
     },
-  ], [walletConnected, scanning, showToast, stopScan]);
+  ], [walletConnected, scanning, showToast, stopScan, setActiveTab]);
   
   useKeyboardShortcuts(shortcuts);
 

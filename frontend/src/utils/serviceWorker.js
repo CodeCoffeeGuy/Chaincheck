@@ -3,7 +3,10 @@
  * Registers the service worker for PWA functionality
  */
 
-export const registerServiceWorker = () => {
+/**
+ * Register service worker for PWA support
+ */
+export function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
@@ -29,5 +32,5 @@ export const registerServiceWorker = () => {
         });
     });
   }
-};
+}
 

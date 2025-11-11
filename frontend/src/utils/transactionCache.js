@@ -3,33 +3,20 @@
  * Caches verification results for faster access and offline support
  */
 
-interface CachedVerification {
-  serialHash: string;
-  batchId: number;
-  serialNumber: string;
-  isAuthentic: boolean;
-  verifier: string;
-  timestamp: number;
-  txHash: string;
-  blockNumber?: number;
-  productName?: string;
-  productBrand?: string;
-  cachedAt: number;
-}
-
 const CACHE_KEY = "chaincheck_verification_cache";
 const CACHE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 const MAX_CACHE_SIZE = 1000; // Maximum number of cached verifications
 
 /**
  * Get all cached verifications
+ * @returns {Array} Array of cached verifications
  */
-export const getCachedVerifications = (): CachedVerification[] => {
+export function getCachedVerifications() {
   try {
     const cached = localStorage.getItem(CACHE_KEY);
     if (!cached) return [];
 
-    const verifications: CachedVerification[] = JSON.parse(cached);
+    const verifications = JSON.parse(cached);
     const now = Date.now();
 
     // Filter out expired entries
@@ -45,12 +32,13 @@ export const getCachedVerifications = (): CachedVerification[] => {
     console.error("Error reading verification cache:", error);
     return [];
   }
-};
+}
 
 /**
  * Save cached verifications
+ * @param {Array} verifications - Array of verifications to save
  */
-const saveCachedVerifications = (verifications: CachedVerification[]): void => {
+function saveCachedVerifications(verifications) {
   try {
     // Limit cache size
     const limited = verifications.slice(-MAX_CACHE_SIZE);
@@ -58,12 +46,23 @@ const saveCachedVerifications = (verifications: CachedVerification[]): void => {
   } catch (error) {
     console.error("Error saving verification cache:", error);
   }
-};
+}
 
 /**
  * Add verification to cache
+ * @param {Object} verification - Verification object (without cachedAt)
+ * @param {string} verification.serialHash - Serial hash
+ * @param {number} verification.batchId - Batch ID
+ * @param {string} verification.serialNumber - Serial number
+ * @param {boolean} verification.isAuthentic - Whether product is authentic
+ * @param {string} verification.verifier - Verifier address
+ * @param {number} verification.timestamp - Timestamp
+ * @param {string} verification.txHash - Transaction hash
+ * @param {number} [verification.blockNumber] - Block number
+ * @param {string} [verification.productName] - Product name
+ * @param {string} [verification.productBrand] - Product brand
  */
-export const addCachedVerification = (verification: Omit<CachedVerification, "cachedAt">): void => {
+export function addCachedVerification(verification) {
   try {
     const cached = getCachedVerifications();
     const now = Date.now();
@@ -72,7 +71,7 @@ export const addCachedVerification = (verification: Omit<CachedVerification, "ca
     const filtered = cached.filter((v) => v.serialHash !== verification.serialHash);
 
     // Add new verification
-    const newVerification: CachedVerification = {
+    const newVerification = {
       ...verification,
       cachedAt: now,
     };
@@ -83,12 +82,14 @@ export const addCachedVerification = (verification: Omit<CachedVerification, "ca
   } catch (error) {
     console.error("Error adding verification to cache:", error);
   }
-};
+}
 
 /**
  * Get cached verification by serial hash
+ * @param {string} serialHash - Serial hash to look up
+ * @returns {Object|null} Cached verification or null if not found
  */
-export const getCachedVerification = (serialHash: string): CachedVerification | null => {
+export function getCachedVerification(serialHash) {
   try {
     const cached = getCachedVerifications();
     const verification = cached.find((v) => v.serialHash === serialHash);
@@ -102,28 +103,28 @@ export const getCachedVerification = (serialHash: string): CachedVerification | 
     console.error("Error getting cached verification:", error);
     return null;
   }
-};
+}
 
 /**
  * Clear all cached verifications
  */
-export const clearVerificationCache = (): void => {
+export function clearVerificationCache() {
   try {
     localStorage.removeItem(CACHE_KEY);
   } catch (error) {
     console.error("Error clearing verification cache:", error);
   }
-};
+}
 
 /**
  * Get cache statistics
+ * @returns {Object} Cache statistics
+ * @returns {number} returns.total - Total number of cached items
+ * @returns {number} returns.size - Cache size in bytes
+ * @returns {number|null} returns.oldest - Oldest cache timestamp
+ * @returns {number|null} returns.newest - Newest cache timestamp
  */
-export const getCacheStats = (): {
-  total: number;
-  size: number;
-  oldest: number | null;
-  newest: number | null;
-} => {
+export function getCacheStats() {
   try {
     const cached = getCachedVerifications();
     if (cached.length === 0) {
@@ -153,5 +154,5 @@ export const getCacheStats = (): {
       newest: null,
     };
   }
-};
+}
 
