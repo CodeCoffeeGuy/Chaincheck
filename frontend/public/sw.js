@@ -1,6 +1,6 @@
 // Service Worker for ChainCheck PWA
-const CACHE_NAME = "chaincheck-v1";
-const RUNTIME_CACHE = "chaincheck-runtime-v1";
+const CACHE_NAME = "chaincheck-v2";
+const RUNTIME_CACHE = "chaincheck-runtime-v2";
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
@@ -45,6 +45,32 @@ self.addEventListener("fetch", (event) => {
 
   // Skip external requests (blockchain RPC, etc.)
   if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  // Don't cache assets with hashes (they're immutable and should always come from network)
+  const url = new URL(event.request.url);
+  const isHashedAsset = /\/assets\/.*-[a-zA-Z0-9]+\.(js|css|mjs)$/.test(url.pathname);
+  
+  // For hashed assets, always fetch from network first (they're immutable)
+  if (isHashedAsset) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Cache for offline use, but always check network first
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cache only if network fails
+          return caches.match(event.request);
+        })
+    );
     return;
   }
 
