@@ -18,6 +18,9 @@ export default defineConfig({
       },
     },
   ],
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
   server: {
     port: 3000,
     host: true,
@@ -25,8 +28,6 @@ export default defineConfig({
     hmr: {
       protocol: 'ws',
       host: 'localhost',
-      port: 3000,
-      clientPort: 3000,
     },
   },
   build: {
