@@ -6,6 +6,7 @@ import {
   isMetaMaskInstalled,
   getCurrentAccount,
   connectWallet,
+  disconnectWallet,
 } from "./utils/blockchain";
 import { validateQRCodeOffline, type QRValidationResult } from "./utils/qrValidator";
 import { copyToClipboardWithFeedback } from "./utils/clipboard";
@@ -13,6 +14,7 @@ import { useToast } from "./contexts/ToastContext";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { addCachedVerification, getCachedVerification, type CachedVerification } from "./utils/transactionCache";
 import { CURRENT_NETWORK } from "./config";
+import { resetUser } from "./utils/analytics";
 import ManufacturerDashboard from "./components/ManufacturerDashboard";
 import VerificationHistory from "./components/VerificationHistory";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
@@ -21,6 +23,7 @@ import TermsOfService from "./components/TermsOfService";
 import FAQ from "./components/FAQ";
 import About from "./components/About";
 import NotFound from "./components/NotFound";
+import LandingPage from "./components/LandingPage";
 import "./App.css";
 
 /**
@@ -47,25 +50,32 @@ function App() {
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [txStatus, setTxStatus] = useState<"idle" | "pending" | "success" | "failed">("idle");
   const [scanner, setScanner] = useState<Html5QrcodeScanner | null>(null);
   const qrReaderRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<"verify" | "dashboard" | "history" | "analytics" | "faq" | "privacy" | "terms" | "about" | "404">("verify");
+  const [isManuallyDisconnected, setIsManuallyDisconnected] = useState(false);
 
   // Check URL hash for navigation
   useEffect(() => {
     const hash = window.location.hash.slice(1);
-    if (hash === "faq" || hash === "privacy" || hash === "terms" || hash === "about" || hash === "404") {
+    const validTabs = ["verify", "dashboard", "history", "analytics", "faq", "privacy", "terms", "about", "404"];
+    
+    // Set initial tab based on hash
+    if (hash && validTabs.includes(hash)) {
       setActiveTab(hash as any);
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (hash === "" || !hash) {
+      setActiveTab("verify");
     }
     
     const handleHashChange = () => {
       const newHash = window.location.hash.slice(1);
-      if (newHash === "faq" || newHash === "privacy" || newHash === "terms" || newHash === "about" || newHash === "404") {
+      if (newHash && validTabs.includes(newHash)) {
         setActiveTab(newHash as any);
         window.scrollTo({ top: 0, behavior: "smooth" });
-      } else if (newHash === "" || newHash === "verify") {
+      } else if (newHash === "" || !newHash) {
         setActiveTab("verify");
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
@@ -75,21 +85,35 @@ function App() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
+  // Check wallet connection when verify tab becomes active
+  useEffect(() => {
+    if (activeTab === "verify" && !walletConnected && !isManuallyDisconnected) {
+      // Re-check wallet connection when verify tab is active
+      // But only if user didn't manually disconnect
+      checkWalletConnection();
+    }
+  }, [activeTab, walletConnected, isManuallyDisconnected]);
+
   /**
    * Check wallet connection on component mount
    */
   useEffect(() => {
     checkWalletConnection();
     
-    // Listen for account changes
-    if (isMetaMaskInstalled() && window.ethereum) {
-      window.ethereum.on("accountsChanged", (accounts: string[]) => {
-        if (accounts.length > 0) {
-          setWalletConnected(true);
-        } else {
-          setWalletConnected(false);
-        }
-      });
+      // Listen for account changes
+      if (isMetaMaskInstalled() && window.ethereum) {
+        window.ethereum.on("accountsChanged", (accounts: string[]) => {
+          if (accounts.length > 0) {
+            setWalletConnected(true);
+            setWalletAddress(accounts[0]);
+            setIsManuallyDisconnected(false); // Reset flag when wallet is reconnected
+          } else {
+            setWalletConnected(false);
+            setWalletAddress(null);
+            setIsManuallyDisconnected(true); // Mark as disconnected
+            resetUser(); // Reset analytics user tracking
+          }
+        });
 
       window.ethereum.on("chainChanged", () => {
         // Reload page on network change
@@ -113,6 +137,7 @@ function App() {
     if (isMetaMaskInstalled()) {
       const account = await getCurrentAccount();
       setWalletConnected(account !== null);
+      setWalletAddress(account);
     }
   };
 
@@ -134,6 +159,8 @@ function App() {
       
       if (accounts && accounts.length > 0) {
         setWalletConnected(true);
+        setWalletAddress(accounts[0]);
+        setIsManuallyDisconnected(false); // Reset flag when wallet is connected
         console.log("Wallet connected:", accounts[0]);
         setResult(null); // Clear any previous errors
         showToast("Wallet connected successfully!", "success");
@@ -555,6 +582,21 @@ function App() {
     setLoading(false);
   };
 
+  /**
+   * Disconnect wallet
+   */
+  const handleDisconnectWallet = () => {
+    disconnectWallet();
+    setWalletConnected(false);
+    setWalletAddress(null);
+    setIsManuallyDisconnected(true); // Mark as manually disconnected
+    resetUser(); // Reset analytics user tracking
+    showToast("Wallet disconnected", "success");
+    // Reset to verify tab
+    setActiveTab("verify");
+    reset();
+  };
+
   // Keyboard shortcuts - memoized to prevent recreation on every render
   const shortcuts = useMemo(() => [
     {
@@ -650,13 +692,49 @@ function App() {
             }}
             style={{ cursor: "pointer" }}
           />
-          <div className="header-text">
+          <div 
+            className="header-text"
+            onClick={() => {
+              setActiveTab("verify");
+              window.location.hash = "";
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            style={{ cursor: "pointer" }}
+          >
             <h1>
               <span className="title-chain">Chain</span>
               <span className="title-check">Check</span>
             </h1>
             <p className="subtitle">Verify Product Authenticity</p>
           </div>
+            {walletConnected && walletAddress && (
+              <div className="wallet-info">
+                <div className="wallet-address">
+                  <span className="wallet-address-label">Connected:</span>
+                  <span className="wallet-address-value">
+                    {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}
+                  </span>
+                </div>
+                <button
+                  onClick={handleDisconnectWallet}
+                  className="btn btn-secondary btn-disconnect"
+                  title="Disconnect wallet"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  <span>Disconnect</span>
+                </button>
+                <span 
+                  className="disconnect-text-mobile"
+                  onClick={handleDisconnectWallet}
+                >
+                  Disconnect wallet
+                </span>
+              </div>
+            )}
         </div>
       </header>
 
@@ -666,25 +744,41 @@ function App() {
           <div className="nav-tabs">
             <button
               className={`nav-tab ${activeTab === "verify" ? "active" : ""}`}
-              onClick={() => setActiveTab("verify")}
+              onClick={() => {
+                setActiveTab("verify");
+                window.location.hash = "verify";
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
             >
               Verify Product
             </button>
             <button
               className={`nav-tab ${activeTab === "history" ? "active" : ""}`}
-              onClick={() => setActiveTab("history")}
+              onClick={() => {
+                setActiveTab("history");
+                window.location.hash = "history";
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
             >
               Verification History
             </button>
             <button
               className={`nav-tab ${activeTab === "analytics" ? "active" : ""}`}
-              onClick={() => setActiveTab("analytics")}
+              onClick={() => {
+                setActiveTab("analytics");
+                window.location.hash = "analytics";
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
             >
               Analytics
             </button>
             <button
               className={`nav-tab ${activeTab === "dashboard" ? "active" : ""}`}
-              onClick={() => setActiveTab("dashboard")}
+              onClick={() => {
+                setActiveTab("dashboard");
+                window.location.hash = "dashboard";
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
             >
               Manufacturer Dashboard
             </button>
@@ -721,8 +815,13 @@ function App() {
           <ManufacturerDashboard />
         )}
 
-        {/* Verification Section */}
-        {activeTab === "verify" && (
+        {/* Landing Page - Show when wallet not connected */}
+        {activeTab === "verify" && !walletConnected && (
+          <LandingPage onStartVerifying={handleConnectWallet} />
+        )}
+
+        {/* Verification Section - Show when wallet connected */}
+        {activeTab === "verify" && walletConnected && (
           <>
             {/* Beta Banner */}
             <div className="beta-banner">

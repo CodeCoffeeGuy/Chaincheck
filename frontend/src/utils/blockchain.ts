@@ -73,6 +73,17 @@ export async function getCurrentAccount(): Promise<string | null> {
 }
 
 /**
+ * Disconnect wallet (reset connection state)
+ * Note: MetaMask doesn't have a true disconnect, but we can reset the app state
+ * @returns void
+ */
+export function disconnectWallet(): void {
+  // MetaMask doesn't support programmatic disconnection
+  // We just reset the app state - user can manually disconnect in MetaMask
+  // The accountsChanged event will handle the state update
+}
+
+/**
  * Switch to the correct network if needed
  */
 export async function switchNetwork(): Promise<void> {
@@ -134,12 +145,33 @@ export async function isContractDeployed(): Promise<boolean> {
   try {
     // Use the network's RPC URL directly for checking deployment
     // This works even if MetaMask isn't connected to the right network
-    const rpcUrl = CURRENT_NETWORK.rpcUrl;
-    const rpcProvider = new ethers.JsonRpcProvider(rpcUrl);
-    const code = await rpcProvider.getCode(CONTRACT_ADDRESS);
-    return code !== "0x" && code !== "0x0";
+    const rpcUrls = (CURRENT_NETWORK as any).fallbackRpcUrls || [CURRENT_NETWORK.rpcUrl];
+    
+    // Try each RPC URL until one works
+    for (const rpcUrl of rpcUrls) {
+      try {
+        const rpcProvider = new ethers.JsonRpcProvider(rpcUrl, undefined, {
+          staticNetwork: true, // Prevent network detection which can cause errors
+        });
+        const code = await Promise.race([
+          rpcProvider.getCode(CONTRACT_ADDRESS),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("Timeout")), 5000)
+          ),
+        ]) as string;
+        
+        if (code && code !== "0x" && code !== "0x0") {
+          return true;
+        }
+      } catch (rpcError) {
+        // Try next RPC URL
+        continue;
+      }
+    }
+    
+    return false;
   } catch (error) {
-    console.error("Error checking contract deployment:", error);
+    // Silently fail - contract might not be deployed or RPC unavailable
     return false;
   }
 }
@@ -389,15 +421,41 @@ export async function registerProduct(
  */
 export async function isAuthorizedManufacturer(): Promise<boolean> {
   try {
+    // Check if MetaMask is installed and connected
+    if (!isMetaMaskInstalled() || !window.ethereum) {
+      return false;
+    }
+
     const account = await getCurrentAccount();
     if (!account) {
+      return false;
+    }
+
+    // Check if contract address is set
+    const defaultAddress = "0x0000000000000000000000000000000000000000";
+    if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS.toLowerCase() === defaultAddress.toLowerCase()) {
       return false;
     }
 
     // Check if contract is deployed first
     const isDeployed = await isContractDeployed();
     if (!isDeployed) {
-      console.warn("Contract not deployed at configured address");
+      // Silently return false - contract might not be deployed or wrong network
+      return false;
+    }
+
+    // Check if we're on the correct network
+    try {
+      const provider = getProvider();
+      const network = await provider.getNetwork();
+      const expectedChainId = parseInt(CURRENT_NETWORK.chainId, 16);
+      
+      if (network.chainId !== BigInt(expectedChainId)) {
+        // Wrong network - silently return false
+        return false;
+      }
+    } catch (networkError) {
+      // Can't get network - likely MetaMask not connected properly
       return false;
     }
 
@@ -406,10 +464,13 @@ export async function isAuthorizedManufacturer(): Promise<boolean> {
   } catch (error: any) {
     // Handle specific error for contract not deployed
     if (error.code === "BAD_DATA" || error.message?.includes("could not decode")) {
-      console.warn("Contract not deployed or wrong address");
+      // Silently return false - contract not deployed or wrong address
       return false;
     }
-    console.error("Error checking authorization:", error);
+    // Only log unexpected errors
+    if (!error.message?.includes("not installed") && !error.message?.includes("not connected")) {
+      console.error("Error checking authorization:", error);
+    }
     return false;
   }
 }
@@ -424,9 +485,34 @@ export async function getStatistics(): Promise<{
   totalManufacturers: bigint;
 }> {
   try {
+    // Check if contract address is set
+    const defaultAddress = "0x0000000000000000000000000000000000000000";
+    if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS.toLowerCase() === defaultAddress.toLowerCase()) {
+      throw new Error("Contract address not configured");
+    }
+
+    // Check if MetaMask is connected and on correct network
+    if (!isMetaMaskInstalled() || !window.ethereum) {
+      throw new Error("MetaMask is not installed or not connected");
+    }
+
     // Check if contract is deployed first
     const isDeployed = await isContractDeployed();
     if (!isDeployed) {
+      // Check if we're on the correct network
+      try {
+        const provider = getProvider();
+        const network = await provider.getNetwork();
+        const expectedChainId = parseInt(CURRENT_NETWORK.chainId, 16);
+        
+        if (network.chainId !== BigInt(expectedChainId)) {
+          throw new Error(`Please connect MetaMask to ${CURRENT_NETWORK.name} (Chain ID: ${expectedChainId})`);
+        }
+      } catch (networkError: any) {
+        // If we can't get network, it's likely MetaMask isn't connected
+        throw new Error("Please connect MetaMask to view statistics");
+      }
+      
       throw new Error("Contract not deployed. Please deploy the contract to the configured address first.");
     }
 
@@ -445,6 +531,10 @@ export async function getStatistics(): Promise<{
     // Handle specific error for contract not deployed
     if (error.code === "BAD_DATA" || error.message?.includes("could not decode")) {
       throw new Error("Contract not deployed. Please deploy the contract to the configured address first.");
+    }
+    // Re-throw network errors as-is
+    if (error.message?.includes("connect MetaMask") || error.message?.includes("Chain ID")) {
+      throw error;
     }
     throw new Error("Failed to fetch statistics: " + error);
   }
