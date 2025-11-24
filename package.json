@@ -7,9 +7,12 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "node": "hardhat node",
-    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
-    "deploy:mumbai": "hardhat run scripts/deploy.js --network mumbai",
-    "deploy:polygon": "hardhat run scripts/deploy.js --network polygon",
+    "validate-env": "node scripts/validate-env.js",
+    "deploy:local": "npm run validate-env && hardhat run scripts/deploy.js --network localhost",
+    "deploy:mumbai": "npm run validate-env && hardhat run scripts/deploy.js --network mumbai",
+    "deploy:amoy": "npm run validate-env && hardhat run scripts/deploy.js --network amoy",
+    "deploy:polygon": "npm run validate-env && hardhat run scripts/deploy-production.js --network polygon",
+    "deploy:prod": "npm run validate-env && hardhat run scripts/deploy-production.js --network polygon",
     "dev": "concurrently \"npm run server\" \"npm run frontend\"",
     "frontend": "cd frontend && npm run dev",
     "server": "cd qr-generator && node server.js"
@@ -30,7 +33,7 @@
     "hardhat": "^2.22.0"
   },
   "dependencies": {
+    "@sentry/react": "^10.25.0",
     "dotenv": "^16.4.5"
   }
 }
-

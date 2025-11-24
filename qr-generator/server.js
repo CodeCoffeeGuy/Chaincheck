@@ -15,15 +15,62 @@
 const express = require("express");
 const QRCode = require("qrcode");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
+const morgan = require("morgan");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const NODE_ENV = process.env.NODE_ENV || "development";
+const isProduction = NODE_ENV === "production";
+
+// ============================================
+// Middleware Setup
+// ============================================
 
 // Enable CORS for all routes
 app.use(cors());
 
 // Parse JSON bodies
 app.use(express.json());
+
+// Request logging
+if (isProduction) {
+  // Production: Use combined format (more detailed)
+  app.use(morgan("combined"));
+} else {
+  // Development: Use dev format (colored, concise)
+  app.use(morgan("dev"));
+}
+
+// ============================================
+// Rate Limiting
+// ============================================
+
+// General rate limiter for QR endpoints
+const qrLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: {
+    error: "Too many requests",
+    message: "Too many requests from this IP, please try again later.",
+    retryAfter: "15 minutes"
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Stricter rate limiter for batch operations
+const batchLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 batch requests per windowMs
+  message: {
+    error: "Too many batch requests",
+    message: "Too many batch requests from this IP, please try again later.",
+    retryAfter: "15 minutes"
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 /**
  * Generate QR code data
@@ -69,7 +116,7 @@ function formatQRData(batchId, serialNumber, useJson = false) {
  *   - serialNumber: Serial number (required)
  *   - format: 'json' for JSON format, 'colon' for colon-separated (default: 'colon')
  */
-app.get("/qr", async (req, res) => {
+app.get("/qr", qrLimiter, async (req, res) => {
   try {
     const batchId = req.query.batchId;
     const serialNumber = req.query.serialNumber;
@@ -192,7 +239,7 @@ app.get("/qr", async (req, res) => {
  *   - serialNumber: Serial number (required)
  *   - format: 'json' for JSON format, 'colon' for colon-separated (default: 'colon')
  */
-app.get("/qr/json", async (req, res) => {
+app.get("/qr/json", qrLimiter, async (req, res) => {
   try {
     const batchId = req.query.batchId;
     const serialNumber = req.query.serialNumber;
@@ -249,7 +296,7 @@ app.get("/qr/json", async (req, res) => {
  *   format?: 'json' | 'colon'
  * }
  */
-app.post("/qr/batch", async (req, res) => {
+app.post("/qr/batch", batchLimiter, async (req, res) => {
   try {
     const { batchId, serialNumbers, format = "colon" } = req.body;
 
@@ -302,13 +349,74 @@ app.post("/qr/batch", async (req, res) => {
  * Health check endpoint
  */
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", service: "chaincheck-qr-generator" });
+  res.json({
+    status: "ok",
+    service: "chaincheck-qr-generator",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: NODE_ENV,
+    version: "1.0.0"
+  });
+});
+
+// ============================================
+// Error Handling Middleware
+// ============================================
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Not found",
+    message: `Route ${req.path} not found`,
+    availableEndpoints: [
+      "GET /health",
+      "GET /qr?batchId=1&serialNumber=SN123456",
+      "GET /qr/json?batchId=1&serialNumber=SN123456",
+      "POST /qr/batch"
+    ]
+  });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  
+  // Don't leak error details in production
+  const errorMessage = isProduction
+    ? "An internal server error occurred"
+    : err.message;
+
+  res.status(err.status || 500).json({
+    error: "Internal server error",
+    message: errorMessage,
+    ...(isProduction ? {} : { stack: err.stack })
+  });
+});
+
+// ============================================
+// Server Startup
+// ============================================
+
+// Graceful shutdown handling
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received: closing HTTP server");
+  process.exit(0);
+});
+
+process.on("SIGINT", () => {
+  console.log("SIGINT signal received: closing HTTP server");
+  process.exit(0);
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`ChainCheck QR Generator running on port ${PORT}`);
+  console.log("=".repeat(50));
+  console.log("ChainCheck QR Generator");
+  console.log("=".repeat(50));
+  console.log(`Environment: ${NODE_ENV}`);
+  console.log(`Port: ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`QR endpoint: http://localhost:${PORT}/qr?batchId=1&serialNumber=SN123456`);
+  console.log("=".repeat(50));
 });
 
