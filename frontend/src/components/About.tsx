@@ -64,44 +64,20 @@ function About() {
           <h2>Why Blockchain?</h2>
           <div className="about-features">
             <div className="feature-item">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-              </div>
               <h3>Immutable Records</h3>
-              <p>Once recorded on the blockchain, verification data cannot be altered or deleted, ensuring trust and transparency.</p>
+              <p>Verification data cannot be altered or deleted, ensuring trust and transparency.</p>
             </div>
             <div className="feature-item">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
-              </div>
               <h3>Decentralized</h3>
-              <p>No single point of failure. The verification system is distributed across the Polygon network, making it resilient and trustworthy.</p>
+              <p>No single point of failure. Distributed across Polygon network, making it resilient and trustworthy.</p>
             </div>
             <div className="feature-item">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="12" y1="1" x2="12" y2="23"/>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
-              </div>
               <h3>Low Cost</h3>
-              <p>Built on Polygon for minimal transaction fees (typically less than $0.01), making it accessible for everyone.</p>
+              <p>Minimal transaction fees (typically less than $0.01), making it accessible for everyone.</p>
             </div>
             <div className="feature-item">
-              <div className="feature-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="m21 21-4.35-4.35"/>
-                </svg>
-              </div>
               <h3>Transparent</h3>
-              <p>All verification records are publicly verifiable on the blockchain, allowing anyone to audit the system.</p>
+              <p>All verification records are publicly verifiable on the blockchain, allowing anyone to audit.</p>
             </div>
           </div>
         </section>
@@ -123,19 +99,19 @@ function About() {
           <div className="about-values">
             <div className="value-item">
               <h3>Transparency</h3>
-              <p>We believe in complete transparency. Our code is open source, and all verifications are publicly verifiable on the blockchain.</p>
+              <p>Complete transparency. Our code is open source, and all verifications are publicly verifiable.</p>
             </div>
             <div className="value-item">
               <h3>Accessibility</h3>
-              <p>We're committed to making product verification accessible to everyone, regardless of technical expertise.</p>
+              <p>Making product verification accessible to everyone, regardless of technical expertise.</p>
             </div>
             <div className="value-item">
               <h3>Trust</h3>
-              <p>By leveraging blockchain technology, we create an unbreakable chain of trust between manufacturers and consumers.</p>
+              <p>Leveraging blockchain technology to create an unbreakable chain of trust between manufacturers and consumers.</p>
             </div>
             <div className="value-item">
               <h3>Innovation</h3>
-              <p>We continuously improve our platform to provide the best possible verification experience.</p>
+              <p>Continuously improving our platform to provide the best possible verification experience.</p>
             </div>
           </div>
         </section>
