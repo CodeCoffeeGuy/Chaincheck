@@ -9,7 +9,7 @@ function TermsOfService() {
     <div className="legal-page">
       <div className="legal-content">
         <h1>Terms of Service</h1>
-        <p className="last-updated">Last Updated: November 11, 2025</p>
+        <p className="last-updated">Last Updated: November 15, 2025</p>
 
         <section>
           <h2>1. Acceptance of Terms</h2>

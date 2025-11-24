@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from "react";
+import { captureException } from "../utils/sentry";
 import "./ErrorBoundary.css";
 
 interface Props {
@@ -36,6 +37,13 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    
+    // Send to Sentry for tracking
+    captureException(error, {
+      componentStack: errorInfo.componentStack,
+      errorBoundary: true,
+    });
+    
     this.setState({
       error,
       errorInfo,
@@ -58,8 +66,8 @@ class ErrorBoundary extends Component<Props, State> {
           <div className="error-boundary-content">
             <div className="error-boundary-icon">
               <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="40" cy="40" r="35" stroke="#FF6B35" strokeWidth="2" strokeDasharray="4 4" opacity="0.3"/>
-                <path d="M25 25L55 55M55 25L25 55" stroke="#FF6B35" strokeWidth="3" strokeLinecap="round"/>
+                <circle cx="40" cy="40" r="35" stroke="#FFA07A" strokeWidth="2" strokeDasharray="4 4" opacity="0.3"/>
+                <path d="M25 25L55 55M55 25L25 55" stroke="#FFA07A" strokeWidth="3" strokeLinecap="round"/>
               </svg>
             </div>
             <h1>Something Went Wrong</h1>

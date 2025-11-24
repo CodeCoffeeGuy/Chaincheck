@@ -29,7 +29,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, transparent, #FF6B35, transparent);
+  background: linear-gradient(90deg, transparent, #FFA07A, transparent);
 }
 
 .not-found-icon {
@@ -37,20 +37,20 @@
   display: flex;
   justify-content: center;
   opacity: 0.9;
-  filter: drop-shadow(0 4px 12px rgba(255, 107, 53, 0.3));
+  filter: drop-shadow(0 4px 12px rgba(255, 160, 122, 0.3));
 }
 
 .not-found-content h1 {
   font-size: 7rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #FF6B35 0%, #ff8c42 100%);
+  background: linear-gradient(135deg, #FFA07A 0%, #FFB380 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 20px;
   line-height: 1;
   letter-spacing: -3px;
-  text-shadow: 0 0 40px rgba(255, 107, 53, 0.3);
+  text-shadow: 0 0 40px rgba(255, 160, 122, 0.3);
 }
 
 .not-found-content h2 {
@@ -102,13 +102,13 @@
 }
 
 .not-found-links a {
-  color: #FF6B35;
+  color: #FFA07A;
   text-decoration: none;
   font-size: 0.95rem;
   padding: 10px 20px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 107, 53, 0.3);
-  background: rgba(255, 107, 53, 0.05);
+  border: 1px solid rgba(255, 160, 122, 0.3);
+  background: rgba(255, 160, 122, 0.05);
   transition: all 0.3s ease;
   display: inline-block;
   font-weight: 500;
@@ -119,10 +119,10 @@
 
 .not-found-links a:hover {
   color: #ffffff;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(255, 140, 66, 0.2) 100%);
-  border-color: #FF6B35;
+  background: linear-gradient(135deg, rgba(255, 160, 122, 0.2) 0%, rgba(255, 179, 128, 0.2) 100%);
+  border-color: #FFA07A;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 160, 122, 0.2);
 }
 
 @media (max-width: 768px) {

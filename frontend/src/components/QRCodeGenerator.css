@@ -16,7 +16,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, transparent, #FF6B35, transparent);
+  background: linear-gradient(90deg, transparent, #FFA07A, transparent);
 }
 
 .qr-generator h2 {
@@ -40,7 +40,7 @@
   left: 0;
   width: 80px;
   height: 3px;
-  background: linear-gradient(90deg, #FF6B35 0%, #ff8c42 100%);
+  background: linear-gradient(90deg, #FFA07A 0%, #FFB380 100%);
   border-radius: 2px;
 }
 
@@ -79,9 +79,9 @@
 }
 
 .mode-btn.active {
-  background: linear-gradient(135deg, #FF6B35 0%, #ff8c42 100%);
+  background: linear-gradient(135deg, #FFA07A 0%, #FFB380 100%);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 160, 122, 0.3);
 }
 
 .generator-form {
@@ -117,8 +117,8 @@
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #ff6b35;
-  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+  border-color: #FFA07A;
+  box-shadow: 0 0 0 2px rgba(255, 160, 122, 0.2);
 }
 
 .form-group textarea {
@@ -223,9 +223,9 @@
 }
 
 .batch-qr-item:hover {
-  border-color: #FF6B35;
+  border-color: #FFA07A;
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.15);
+  box-shadow: 0 8px 24px rgba(255, 160, 122, 0.15);
 }
 
 .batch-qr-image {

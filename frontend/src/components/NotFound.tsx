@@ -10,8 +10,8 @@ function NotFound() {
       <div className="not-found-content">
         <div className="not-found-icon">
           <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="60" cy="60" r="50" stroke="#FF6B35" strokeWidth="3" strokeDasharray="8 8" opacity="0.3"/>
-            <path d="M40 40L80 80M80 40L40 80" stroke="#FF6B35" strokeWidth="4" strokeLinecap="round"/>
+            <circle cx="60" cy="60" r="50" stroke="#FFA07A" strokeWidth="3" strokeDasharray="8 8" opacity="0.3"/>
+            <path d="M40 40L80 80M80 40L40 80" stroke="#FFA07A" strokeWidth="4" strokeLinecap="round"/>
           </svg>
         </div>
         <h1>404</h1>

@@ -52,7 +52,7 @@
 }
 
 .error-boundary-details summary {
-  color: #FF6B35;
+  color: #FFA07A;
   cursor: pointer;
   font-weight: 600;
   margin-bottom: 12px;
@@ -60,7 +60,7 @@
 }
 
 .error-boundary-details summary:hover {
-  color: #ff8c42;
+  color: #FFB380;
 }
 
 .error-boundary-error {
@@ -123,13 +123,13 @@
 
 .error-boundary-help li::before {
   content: "•";
-  color: #FF6B35;
+  color: #FFA07A;
   position: absolute;
   left: 0;
 }
 
 .error-boundary-help a {
-  color: #FF6B35;
+  color: #FFA07A;
   text-decoration: none;
   transition: color 0.2s ease;
   word-break: break-all;
@@ -138,7 +138,7 @@
 }
 
 .error-boundary-help a:hover {
-  color: #ff8c42;
+  color: #FFB380;
   text-decoration: underline;
 }
 

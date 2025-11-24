@@ -22,19 +22,19 @@
 }
 
 .toast-success {
-  border-left: 4px solid #10b981;
+  border-left: 4px solid #86EFAC;
 }
 
 .toast-error {
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid #F87171;
 }
 
 .toast-warning {
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid #FCD34D;
 }
 
 .toast-info {
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid #93C5FD;
 }
 
 .toast-content {
@@ -54,19 +54,19 @@
 }
 
 .toast-success .toast-icon {
-  color: #10b981;
+  color: #86EFAC;
 }
 
 .toast-error .toast-icon {
-  color: #ef4444;
+  color: #F87171;
 }
 
 .toast-warning .toast-icon {
-  color: #f59e0b;
+  color: #FCD34D;
 }
 
 .toast-info .toast-icon {
-  color: #3b82f6;
+  color: #93C5FD;
 }
 
 .toast-message {

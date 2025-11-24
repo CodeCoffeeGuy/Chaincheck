@@ -58,11 +58,22 @@ function ManufacturerDashboard() {
       const isAuth = await isAuthorizedManufacturer();
       setAuthorized(isAuth);
     } catch (error: any) {
-      console.error("Error checking authorization:", error);
-      // Don't show error if contract not deployed - it's expected during development
-      if (error.message?.includes("not deployed") || error.code === "BAD_DATA") {
-        console.log("Contract not deployed yet - this is normal if you haven't deployed to localhost");
+      // Silently handle expected errors
+      const errorMessage = error.message || "";
+      if (
+        errorMessage.includes("not deployed") ||
+        errorMessage.includes("could not decode") ||
+        errorMessage.includes("not installed") ||
+        errorMessage.includes("not connected") ||
+        error.code === "BAD_DATA"
+      ) {
+        // Silently handle - user will connect when ready
+        setAuthorized(false);
+        return;
       }
+      
+      // Only log unexpected errors
+      console.error("Error checking authorization:", error);
       setAuthorized(false);
     }
   };
@@ -75,11 +86,23 @@ function ManufacturerDashboard() {
       const stats = await getStatistics();
       setStatistics(stats);
     } catch (error: any) {
-      console.error("Error loading statistics:", error);
-      // Don't show error if contract not deployed - it's expected during development
-      if (error.message?.includes("not deployed") || error.message?.includes("could not decode")) {
-        console.log("Contract not deployed yet - this is normal if you haven't deployed to localhost");
+      // Only log errors that are not expected (network not connected, etc.)
+      const errorMessage = error.message || "";
+      
+      // Don't show error if contract not deployed or MetaMask not connected - it's expected
+      if (
+        errorMessage.includes("not deployed") || 
+        errorMessage.includes("could not decode") ||
+        errorMessage.includes("MetaMask is not installed") ||
+        errorMessage.includes("connect MetaMask") ||
+        errorMessage.includes("not configured") ||
+        errorMessage.includes("Chain ID")
+      ) {
+        // Silently handle - user will connect when ready
+        return;
       }
+      
+      console.error("Error loading statistics:", error);
     }
   };
 

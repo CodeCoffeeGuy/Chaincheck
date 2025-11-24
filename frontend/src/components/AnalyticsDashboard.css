@@ -16,7 +16,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, transparent, #FF6B35, transparent);
+  background: linear-gradient(90deg, transparent, #FFA07A, transparent);
 }
 
 .analytics-dashboard h2 {
@@ -40,7 +40,7 @@
   left: 0;
   width: 80px;
   height: 3px;
-  background: linear-gradient(90deg, #FF6B35 0%, #ff8c42 100%);
+  background: linear-gradient(90deg, #FFA07A 0%, #FFB380 100%);
   border-radius: 2px;
 }
 
@@ -76,7 +76,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #FF6B35 0%, #ff8c42 100%);
+  background: linear-gradient(90deg, #FFA07A 0%, #FFB380 100%);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -87,8 +87,8 @@
 
 .stat-card:hover {
   transform: translateY(-6px);
-  border-color: #FF6B35;
-  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.25);
+  border-color: #FFA07A;
+  box-shadow: 0 8px 24px rgba(255, 160, 122, 0.25);
 }
 
 .stat-icon {
@@ -99,7 +99,7 @@
 .stat-value {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #ff8c42;
+  color: #FFB380;
   margin-bottom: 10px;
 }
 
@@ -123,10 +123,10 @@
 
 .error-message {
   padding: 20px;
-  background: rgba(220, 53, 69, 0.15);
+  background: rgba(248, 113, 113, 0.15);
   border: 1px solid #dc3545;
   border-radius: 8px;
-  color: #f87171;
+  color: #FCA5A5;
   text-align: center;
 }
 

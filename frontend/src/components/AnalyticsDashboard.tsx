@@ -27,14 +27,26 @@ function AnalyticsDashboard() {
       const stats = await getStatistics();
       setStatistics(stats);
     } catch (err: any) {
-      console.error("Error loading analytics:", err);
       const errorMessage = err.message || "Failed to load analytics";
-      // Provide helpful message if contract not deployed
-      if (errorMessage.includes("not deployed") || errorMessage.includes("could not decode")) {
-        setError("Contract not deployed. Please deploy the contract to localhost first. See deployment instructions in the README.");
-      } else {
-        setError(errorMessage);
+      
+      // Don't show error if MetaMask not connected or wrong network - user will connect when ready
+      if (
+        errorMessage.includes("MetaMask is not installed") ||
+        errorMessage.includes("connect MetaMask") ||
+        errorMessage.includes("Chain ID") ||
+        errorMessage.includes("not configured") ||
+        errorMessage.includes("not deployed") ||
+        errorMessage.includes("could not decode")
+      ) {
+        // Silently handle - user will connect when ready
+        // Contract is deployed on Amoy, just need to connect MetaMask
+        setLoading(false);
+        return;
       }
+      
+      // Only log/show errors for actual problems
+      console.error("Error loading analytics:", err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -61,7 +73,7 @@ function AnalyticsDashboard() {
         <div className="error-message">
           <p>{error}</p>
           {error.includes("not deployed") && (
-            <div style={{ marginTop: "16px", padding: "12px", background: "rgba(255, 107, 53, 0.1)", borderRadius: "8px", fontSize: "0.9rem" }}>
+            <div style={{ marginTop: "16px", padding: "12px", background: "rgba(255, 160, 122, 0.1)", borderRadius: "8px", fontSize: "0.9rem" }}>
               <p style={{ marginBottom: "8px", fontWeight: "500" }}>To deploy the contract:</p>
               <ol style={{ textAlign: "left", marginLeft: "20px", lineHeight: "1.6" }}>
                 <li>Start Hardhat node: <code style={{ background: "rgba(0,0,0,0.3)", padding: "2px 6px", borderRadius: "4px" }}>npx hardhat node</code></li>
