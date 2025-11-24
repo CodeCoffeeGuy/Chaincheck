@@ -52,22 +52,22 @@ ChainCheck provides a transparent, immutable verification system:
 
 ```
 ChainCheck/
-├── contracts/           # Smart contracts
-│   └── ChainCheck.sol  # Main verification contract
-├── frontend/           # React application
-│   ├── src/
-│   │   ├── App.tsx     # Main application component
-│   │   ├── config.ts   # Configuration and contract ABI
-│   │   └── utils/      # Blockchain utility functions
-│   └── package.json
-├── qr-generator/       # QR code generation service
-│   └── server.js
-├── scripts/            # Deployment scripts
-│   └── deploy.js
-├── test/               # Test suite
-│   └── ChainCheck.test.js
-├── hardhat.config.js   # Hardhat configuration
-└── README.md
+ contracts/ # Smart contracts
+ ChainCheck.sol # Main verification contract
+ frontend/ # React application
+ src/
+ App.tsx # Main application component
+ config.ts # Configuration and contract ABI
+ utils/ # Blockchain utility functions
+ package.json
+ qr-generator/ # QR code generation service
+ server.js
+ scripts/ # Deployment scripts
+ deploy.js
+ test/ # Test suite
+ ChainCheck.test.js
+ hardhat.config.js # Hardhat configuration
+ README.md
 ```
 
 ## Getting Started
@@ -81,74 +81,84 @@ ChainCheck/
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/ChainCheck.git
-   cd ChainCheck
-   ```
+ ```bash
+ git clone https://github.com/yourusername/ChainCheck.git
+ cd ChainCheck
+ ```
 
 2. **Install root dependencies**
-   ```bash
-   npm install
-   ```
+ ```bash
+ npm install
+ ```
 
 3. **Install frontend dependencies**
-   ```bash
-   cd frontend
-   npm install
-   cd ..
-   ```
+ ```bash
+ cd frontend
+ npm install
+ cd ..
+ ```
 
 4. **Install QR generator dependencies**
-   ```bash
-   cd qr-generator
-   npm install
-   cd ..
-   ```
+ ```bash
+ cd qr-generator
+ npm install
+ cd ..
+ ```
 
 5. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   ```
-   Edit `.env` and add your private key:
-   ```
-   PRIVATE_KEY=your_private_key_here
-   ```
+ ```bash
+ # Root directory
+ cp .env.example .env
+ 
+ # Frontend directory
+ cd frontend
+ cp .env.example .env
+ cd ..
+ ```
+ Edit `.env` files and add your configuration:
+ - Root `.env`: Add `PRIVATE_KEY`, `POLYGON_RPC_URL`, etc.
+ - Frontend `.env`: Add `VITE_CONTRACT_ADDRESS` after deployment
+ 
+ **Validate environment variables:**
+ ```bash
+ npm run validate-env
+ ```
 
 ### Local Development
 
 1. **Start local Hardhat node**
-   ```bash
-   npx hardhat node
-   ```
-   Keep this terminal running.
+ ```bash
+ npx hardhat node
+ ```
+ Keep this terminal running.
 
 2. **Deploy contract to local network** (in a new terminal)
-   ```bash
-   npx hardhat run scripts/deploy.js --network localhost
-   ```
-   Copy the deployed contract address.
+ ```bash
+ npx hardhat run scripts/deploy.js --network localhost
+ ```
+ Copy the deployed contract address.
 
 3. **Update frontend configuration**
-   - Open `frontend/src/config.ts`
-   - Update `CONTRACT_ADDRESS` with the deployed address
-   - Set `CURRENT_NETWORK` to `NETWORK_CONFIG.localhost`
+ - Open `frontend/src/config.ts`
+ - Update `CONTRACT_ADDRESS` with the deployed address
+ - Set `CURRENT_NETWORK` to `NETWORK_CONFIG.localhost`
 
 4. **Start QR generator service** (in a new terminal)
-   ```bash
-   cd qr-generator
-   npm start
-   ```
+ ```bash
+ cd qr-generator
+ npm start
+ ```
 
 5. **Start frontend development server** (in a new terminal)
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+ ```bash
+ cd frontend
+ npm run dev
+ ```
 
 6. **Access the application**
-   - Open http://localhost:3000 in your browser
-   - Connect MetaMask to localhost network (Chain ID: 1337)
-   - Import test accounts from Hardhat node for testing
+ - Open http://localhost:3000 in your browser
+ - Connect MetaMask to localhost network (Chain ID: 1337)
+ - Import test accounts from Hardhat node for testing
 
 ### Testing
 
@@ -169,54 +179,72 @@ The test suite covers:
 
 ### Deploy Smart Contract
 
+#### Prerequisites
+
+1. **Set up environment variables**
+ ```bash
+ cp .env.example .env
+ # Edit .env and add your PRIVATE_KEY and other required variables
+ ```
+
+2. **Validate environment**
+ ```bash
+ npm run validate-env
+ ```
+
 #### Mumbai Testnet
 
 1. **Get test MATIC**
-   - Visit https://faucet.polygon.technology
-   - Request test tokens for your address
+ - Visit https://faucet.polygon.technology
+ - Request test tokens for your address
 
 2. **Deploy contract**
-   ```bash
-   npx hardhat run scripts/deploy.js --network mumbai
-   ```
+ ```bash
+ npm run deploy:mumbai
+ # Or manually:
+ # npx hardhat run scripts/deploy.js --network mumbai
+ ```
 
 3. **Verify contract** (optional)
-   ```bash
-   npx hardhat verify --network mumbai <CONTRACT_ADDRESS>
-   ```
+ ```bash
+ npx hardhat verify --network mumbai <CONTRACT_ADDRESS>
+ ```
 
 #### Polygon Mainnet
 
 1. **Ensure sufficient MATIC** in your wallet
 
 2. **Deploy contract**
-   ```bash
-   npx hardhat run scripts/deploy.js --network polygon
-   ```
+ ```bash
+ npm run deploy:prod
+ # Or manually:
+ # npx hardhat run scripts/deploy-production.js --network polygon
+ ```
 
 3. **Update frontend configuration**
-   - Update `CONTRACT_ADDRESS` in `frontend/src/config.ts`
-   - Set `CURRENT_NETWORK` to `NETWORK_CONFIG.polygon`
+ - Option A (Recommended): Set `VITE_CONTRACT_ADDRESS` in `frontend/.env`
+ - Option B: Update `CONTRACT_ADDRESS` in `frontend/src/config.ts`
+ - Set `CURRENT_NETWORK` to `NETWORK_CONFIG.polygon` in `frontend/src/config.ts`
 
 ### Deploy Frontend
 
 #### Vercel (Recommended)
 
 1. **Install Vercel CLI**
-   ```bash
-   npm i -g vercel
-   ```
+ ```bash
+ npm i -g vercel
+ ```
 
 2. **Build frontend**
-   ```bash
-   cd frontend
-   npm run build
-   ```
+ ```bash
+ cd frontend
+ npm run build
+ ```
 
 3. **Deploy**
-   ```bash
-   vercel --prod
-   ```
+ ```bash
+ vercel --prod
+ ```
 
 #### Other Platforms
 
@@ -228,14 +256,128 @@ The frontend is a standard React application and can be deployed to:
 
 ### Deploy QR Generator
 
-The QR generator can be deployed to:
+The QR generator service includes:
+- Rate limiting (100 requests/15min per IP)
+- Request logging (Morgan)
+- Error handling
+- Health check endpoint (`/health`)
+- Production-ready error messages
+
+**Deploy to:**
 - Heroku
 - Railway
 - Render
 - AWS EC2
 - Any Node.js hosting service
 
-Or use it locally for development.
+**Environment variables:**
+```bash
+PORT=3001 # Optional, defaults to 3001
+NODE_ENV=production # Set to production for production deployment
+```
+
+**Health check:**
+```bash
+curl http://your-service-url/health
+```
+
+Or use it locally for development:
+```bash
+npm run server
+```
+
+## Monitoring & Analytics
+
+### Error Tracking (Sentry)
+
+ChainCheck includes Sentry integration for production error tracking:
+
+1. **Set up Sentry:**
+ - Create account at https://sentry.io
+ - Create a React project
+ - Copy your DSN
+
+2. **Configure:**
+ ```bash
+ # Add to frontend/.env
+ VITE_SENTRY_DSN=https://your-dsn@sentry.io/project-id
+ ```
+
+3. **Features:**
+ - Automatic error capture
+ - Performance monitoring
+ - Session replay on errors
+ - User context tracking
+
+### Analytics (PostHog)
+
+Track user behavior and business metrics with PostHog:
+
+1. **Set up PostHog:**
+ - Create account at https://posthog.com
+ - Create a new project
+ - Copy your API key (phc_...)
+
+2. **Configure:**
+ ```bash
+ # Add to frontend/.env
+ VITE_POSTHOG_KEY=phc_your_api_key_here
+ # Optional: If self-hosting
+ # VITE_POSTHOG_HOST=https://your-posthog-instance.com
+ ```
+
+3. **What's Tracked:**
+ - Page views (automatic)
+ - QR code scans
+ - Product verifications
+ - Wallet connections
+ - Errors
+ - Session recordings (optional)
+ - Feature flags support
+
+4. **Features:**
+ - Automatic event capture
+ - Session replay
+ - User identification
+ - Privacy-focused (GDPR-ready)
+ - Open source (can self-host)
+
+See [MONITORING_SETUP.md](./MONITORING_SETUP.md) for complete monitoring setup guide.
+
+## CI/CD
+
+ChainCheck includes GitHub Actions workflows for automated testing and deployment:
+
+### Workflows
+
+1. **CI Pipeline** (`.github/workflows/ci.yml`)
+ - Runs on every push/PR
+ - Tests and lints code
+ - Builds frontend
+ - Security audits
+ - Auto-deploys to staging/production
+
+2. **Contract Deployment** (`.github/workflows/contract-deploy.yml`)
+ - Manual workflow for contract deployment
+ - Supports Mumbai and Polygon networks
+ - Optional contract verification
+
+### Setup
+
+1. **Add GitHub Secrets:**
+ - `VERCEL_TOKEN` - Vercel deployment token
+ - `VERCEL_ORG_ID` - Vercel organization ID
+ - `VERCEL_PROJECT_ID` - Vercel project ID
+ - `PRIVATE_KEY` - For contract deployment
+ - `POLYGON_RPC_URL` - Polygon RPC endpoint
+ - `POLYGONSCAN_API_KEY` - For contract verification
+
+2. **Workflow Triggers:**
+ - Push to `main` → Deploy to production
+ - Push to `develop` → Deploy to staging
+ - Pull requests → Run tests only
+
+See workflow files in `.github/workflows/` for details.
 
 ## Usage
 
@@ -243,14 +385,14 @@ Or use it locally for development.
 
 1. **Get authorized** by the contract owner
 2. **Register products** using the `registerProduct` function:
-   ```javascript
-   registerProduct(
-     batchId: 1,
-     name: "Premium Sneakers",
-     brand: "Nike",
-     serialHashes: [hash1, hash2, ...]
-   )
-   ```
+ ```javascript
+ registerProduct(
+ batchId: 1,
+ name: "Premium Sneakers",
+ brand: "Nike",
+ serialHashes: [hash1, hash2, ...]
+ )
+ ```
 3. **Generate QR codes** using the QR generator service
 4. **Attach QR codes** to products
 

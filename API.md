@@ -20,10 +20,10 @@ Register a new product batch with serial numbers.
 
 ```solidity
 function registerProductBatch(
-    uint256 batchId,
-    string memory name,
-    string memory brand,
-    bytes32[] memory serialHashes
+ uint256 batchId,
+ string memory name,
+ string memory brand,
+ bytes32[] memory serialHashes
 ) external
 ```
 
@@ -47,8 +47,8 @@ Verify a product's authenticity.
 
 ```solidity
 function verifyProduct(
-    bytes32 serialHash,
-    uint256 batchId
+ bytes32 serialHash,
+ uint256 batchId
 ) external returns (bool)
 ```
 
@@ -123,8 +123,8 @@ const qrData = "1:SN001"; // or JSON format
 const validation = validateQRCodeOffline(qrData);
 
 if (validation.valid) {
-  console.log("Batch ID:", validation.batchId);
-  console.log("Serial Number:", validation.serialNumber);
+ console.log("Batch ID:", validation.batchId);
+ console.log("Serial Number:", validation.serialNumber);
 }
 ```
 
@@ -141,8 +141,8 @@ Example: 1:SN001
 ### Format 2: JSON
 ```json
 {
-  "batchId": "1",
-  "serialNumber": "SN001"
+ "batchId": "1",
+ "serialNumber": "SN001"
 }
 ```
 
@@ -154,10 +154,10 @@ Emitted when a new product batch is registered.
 
 ```solidity
 event ProductBatchRegistered(
-    uint256 indexed batchId,
-    string name,
-    string brand,
-    address indexed manufacturer
+ uint256 indexed batchId,
+ string name,
+ string brand,
+ address indexed manufacturer
 );
 ```
 
@@ -167,10 +167,10 @@ Emitted when a product is verified.
 
 ```solidity
 event ProductVerified(
-    bytes32 indexed serialHash,
-    uint256 indexed batchId,
-    address indexed verifier,
-    bool isAuthentic
+ bytes32 indexed serialHash,
+ uint256 indexed batchId,
+ address indexed verifier,
+ bool isAuthentic
 );
 ```
 

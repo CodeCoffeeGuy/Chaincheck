@@ -26,11 +26,11 @@ if (!condition) revert NotAuthorized();
 Product struct uses efficient packing:
 ```solidity
 struct Product {
-    string name;        // 32 bytes (1 slot)
-    string brand;       // 32 bytes (1 slot)
-    bool exists;        // 1 byte (packed)
-    uint64 registeredAt; // 8 bytes (packed with bool)
-    // Total: 2 storage slots instead of 4
+ string name; // 32 bytes (1 slot)
+ string brand; // 32 bytes (1 slot)
+ bool exists; // 1 byte (packed)
+ uint64 registeredAt; // 8 bytes (packed with bool)
+ // Total: 2 storage slots instead of 4
 }
 ```
 
@@ -134,10 +134,10 @@ This will show actual gas costs for all operations.
 ## Conclusion
 
 ChainCheck is optimized for low gas costs on Polygon:
-- ✅ Custom errors
-- ✅ Packed structs
-- ✅ Batch operations
-- ✅ Efficient storage patterns
+- Custom errors
+- Packed structs
+- Batch operations
+- Efficient storage patterns
 
 For most use cases, gas costs are negligible on Polygon network.
 

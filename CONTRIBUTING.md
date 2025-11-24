@@ -15,19 +15,19 @@ Thank you for your interest in contributing to ChainCheck! This document provide
 
 1. Check if the bug has already been reported in Issues
 2. If not, create a new issue with:
-   - Clear title and description
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Environment details (OS, Node version, etc.)
-   - Screenshots if applicable
+ - Clear title and description
+ - Steps to reproduce
+ - Expected vs actual behavior
+ - Environment details (OS, Node version, etc.)
+ - Screenshots if applicable
 
 ### Suggesting Features
 
 1. Check existing issues and roadmap
 2. Create a new issue with:
-   - Clear description of the feature
-   - Use case and benefits
-   - Potential implementation approach (if you have ideas)
+ - Clear description of the feature
+ - Use case and benefits
+ - Potential implementation approach (if you have ideas)
 
 ### Pull Requests
 
