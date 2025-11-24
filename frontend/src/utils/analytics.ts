@@ -33,7 +33,6 @@ export function initAnalytics() {
       session_recording: {
         recordCrossOriginIframes: false,
         maskAllInputs: true, // Privacy: mask all inputs
-        maskAllText: false, // Allow text visibility for better insights
       },
       // Privacy settings
       respect_dnt: true, // Respect Do Not Track
