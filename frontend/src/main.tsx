@@ -4,7 +4,15 @@ import App from "./App";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ToastProvider } from "./contexts/ToastContext";
 import { registerServiceWorker } from "./utils/serviceWorker";
+import { initSentry } from "./utils/sentry";
+import { initAnalytics } from "./utils/analytics";
 import "./index.css";
+
+// Initialize Sentry for error tracking (if DSN is provided)
+initSentry();
+
+// Initialize Analytics (if GA_ID is provided)
+initAnalytics();
 
 /**
  * Application Entry Point
@@ -32,9 +40,9 @@ try {
   rootElement.innerHTML = `
     <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #0f0f0f; color: #f5f5f5; font-family: system-ui, sans-serif; padding: 20px; text-align: center;">
       <div>
-        <h1 style="color: #FF6B35; margin-bottom: 20px;">Failed to Load</h1>
+        <h1 style="color: #FFA07A; margin-bottom: 20px;">Failed to Load</h1>
         <p style="margin-bottom: 20px;">The application failed to initialize. Please refresh the page.</p>
-        <button onclick="window.location.reload()" style="padding: 12px 24px; background: #FF6B35; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+        <button onclick="window.location.reload()" style="padding: 12px 24px; background: #FFA07A; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
           Refresh Page
         </button>
       </div>
