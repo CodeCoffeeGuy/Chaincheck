@@ -9,15 +9,28 @@
 // Contract address - Update this after deploying to Polygon mainnet
 // Deploy with: npx hardhat run scripts/deploy.js --network polygon
 // You can also set VITE_CONTRACT_ADDRESS in .env file
-export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x0000000000000000000000000000000000000000";
+// Amoy Testnet: 0x86b462f596452E0E66b3A246dFB8e76e89f2eD6D
+export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x86b462f596452E0E66b3A246dFB8e76e89f2eD6D";
 
 // Network configuration
 export const NETWORK_CONFIG = {
-  // Polygon Mumbai testnet
+  // Polygon Mumbai testnet (DEPRECATED)
   mumbai: {
     chainId: "0x13881", // 80001 in hex
     rpcUrl: "https://rpc-mumbai.maticvigil.com",
-    name: "Mumbai Testnet",
+    name: "Mumbai Testnet (Deprecated)",
+  },
+  // Polygon Amoy testnet (replacement for Mumbai)
+  amoy: {
+    chainId: "0x13882", // 80002 in hex
+    rpcUrl: "https://rpc-amoy.polygon.technology",
+    // Fallback RPC URLs if primary fails
+    fallbackRpcUrls: [
+      "https://rpc.ankr.com/polygon_amoy",
+      "https://polygon-amoy.drpc.org",
+      "https://rpc-amoy.polygon.technology",
+    ],
+    name: "Amoy Testnet",
   },
   // Polygon mainnet
   polygon: {
@@ -34,9 +47,10 @@ export const NETWORK_CONFIG = {
 };
 
 // Current network to use (change based on deployment)
-// Options: NETWORK_CONFIG.localhost, NETWORK_CONFIG.mumbai, NETWORK_CONFIG.polygon
+// Options: NETWORK_CONFIG.localhost, NETWORK_CONFIG.amoy, NETWORK_CONFIG.polygon
+// TESTNET: Use NETWORK_CONFIG.amoy
 // PRODUCTION: Use NETWORK_CONFIG.polygon
-export const CURRENT_NETWORK = NETWORK_CONFIG.polygon;
+export const CURRENT_NETWORK = NETWORK_CONFIG.amoy;
 
 // Contract ABI - This will be imported from the compiled contract
 // After deployment, copy the ABI from artifacts/contracts/ChainCheck.sol/ChainCheck.json
