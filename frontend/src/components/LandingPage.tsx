@@ -52,54 +52,6 @@ function LandingPage({ onStartVerifying }: LandingPageProps) {
         </div>
       </section>
 
-      {/* Key Features */}
-      <section className="landing-features">
-        <div className="features-grid">
-          <div className="feature-card">
-            <div className="feature-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-            </div>
-            <h3>Immutable Records</h3>
-            <p>Blockchain-verified data that cannot be altered or tampered with</p>
-          </div>
-          
-          <div className="feature-card">
-            <div className="feature-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-            </div>
-            <h3>Instant Verification</h3>
-            <p>Real-time results in seconds with blockchain confirmation</p>
-          </div>
-          
-          <div className="feature-card">
-            <div className="feature-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-            </div>
-            <h3>No App Required</h3>
-            <p>Works entirely in your browser - no downloads needed</p>
-          </div>
-          
-          <div className="feature-card">
-            <div className="feature-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="12" y1="1" x2="12" y2="23"/>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-              </svg>
-            </div>
-            <h3>Low Cost</h3>
-            <p>Minimal fees on Polygon network - typically less than $0.01</p>
-          </div>
-        </div>
-      </section>
-
       {/* How It Works */}
       <section className="landing-how-it-works">
         <h2 className="section-title">How It Works</h2>
