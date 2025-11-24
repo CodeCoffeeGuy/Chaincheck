@@ -38,7 +38,7 @@ export function initAnalytics() {
       // Privacy settings
       respect_dnt: true, // Respect Do Not Track
       // Loaded callback
-      loaded: (posthog) => {
+      loaded: (_posthog) => {
         if (IS_PRODUCTION) {
           console.log("Analytics: PostHog initialized");
         }
