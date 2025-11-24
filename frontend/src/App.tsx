@@ -705,7 +705,6 @@ function App() {
               <span className="title-chain">Chain</span>
               <span className="title-check">Check</span>
             </h1>
-            <p className="subtitle">Verify Product Authenticity</p>
           </div>
             {walletConnected && walletAddress && (
               <div className="wallet-info">
